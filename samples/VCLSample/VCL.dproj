@@ -6,8 +6,8 @@
         <MainSource>VCL.dpr</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
-        <TargetedPlatforms>1</TargetedPlatforms>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -34,6 +34,12 @@
         <Cfg_1>true</Cfg_1>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+        <Cfg_1_Win64>true</Cfg_1_Win64>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
         <Cfg_2>true</Cfg_2>
         <CfgParent>Base</CfgParent>
@@ -41,6 +47,12 @@
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
         <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64)'!=''">
+        <Cfg_2_Win64>true</Cfg_2_Win64>
         <CfgParent>Cfg_2</CfgParent>
         <Cfg_2>true</Cfg_2>
         <Base>true</Base>
@@ -71,6 +83,12 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <DCC_UsePackage>DBXSqliteDriver;dxPSPrVwRibbonRS25;dxRibbonCustomizationFormRS25;DBXDb2Driver;dxSkinOffice2007PinkRS25;uSynEdit_R2021;dxSkinMcSkinRS25;vclactnband;vclFireDAC;cxExportRS25;dxHttpIndyRequestRS25;tethering;dxPScxCommonRS25;uniGUI25Chart;FireDACADSDriver;cxPivotGridOLAPRS25;FireDACMSSQLDriver;vcltouch;dxSkinDarkRoomRS25;dxSkinDarkSideRS25;vcldb;Intraweb;cxSchedulerGridRS25;dxGaugeControlRS25;cxLibraryRS25;dxSkinOffice2007SilverRS25;VCL_FlexCel_Components;dxSkinBlackRS25;dxSkinOffice2007BlueRS25;vclib;dxFlowChartAdvancedCustomizeFormRS25;dxSkinOffice2007BlackRS25;dxSkinTheBezierRS25;FireDACDBXDriver;dxSkinVS2010RS25;vclx;dxSkinFoggyRS25;dxSkinSevenRS25;dxSkinSpringTimeRS25;dxTileControlRS25;dxMapControlRS25;dxPDFViewerRS25;dxDockingRS25;VCLRESTComponents;cxPageControlRS25;dxSkinLilianRS25;dxPSLnksRS25;dxWizardControlRS25;vclie;bindengine;dxFireDACServerModeRS25;FireDACMySQLDriver;dxSkinOffice2013LightGrayRS25;DataSnapClient;dxSkinMetropolisRS25;dxPSdxPDFViewerLnkRS25;uniGUI25Core;dxSkinOffice2016DarkRS25;dxSkinBlueprintRS25;bindcompdbx;dxSkinStardustRS25;DBXSybaseASEDriver;IndyIPServer;dxPSdxLCLnkRS25;IndySystem;dxSkinOffice2007GreenRS25;dsnapcon;dxLayoutControlRS25;FireDACMSAccDriver;fmxFireDAC;FireDACInfxDriver;vclimg;dxdbtrRS25;emshosting;dxSkinVisualStudio2013LightRS25;FlexCel_XlsAdapter;uIndy25;DBXOdbcDriver;FireDACTDataDriver;FMXTee;dxSkinTheAsphaltWorldRS25;DbxCommonDriver;dxorgcRS25;dxSkinHighContrastRS25;cxGridRS25;xmlrtl;DataSnapNativeClient;fmxobj;dxAuthorizationAgentsRS25;dxPScxSchedulerLnkRS25;rtl;DbxClientDriver;DBXSybaseASADriver;dxPSCoreRS25;dxmdsRS25;dxSkinOffice2016ColorfulRS25;appanalytics;DCEF_DX10;IndyIPClient;bindcompvcl;dxThemeRS25;dxADOEMFRS25;TeeUI;FMX_FlexCel_Components;VclSmp;FireDACODBCDriver;DataSnapIndy10ServerTransport;DataSnapProviderClient;FireDACMongoDBDriver;dxtrmdRS25;dxADOServerModeRS25;dxSkinPumpkinRS25;DataSnapServerMidas;dxCoreRS25;dxSkinValentineRS25;cxSchedulerTreeBrowserRS25;DBXInterBaseDriver;FlexCel_Pdf;FMX_FlexCel_Core;dxPSTeeChartRS25;dxSkinOffice2010BlueRS25;dxSkinMoneyTwinsRS25;dxSkinSilverRS25;DBXMSSQLDriver;dxPSdxFCLnkRS25;DatasnapConnectorsFreePascal;dxRichEditCoreRS25;dxSkinOffice2013WhiteRS25;bindcompfmx;DBXOracleDriver;inetdb;RaizeComponentsVcl;dxOfficeCoreRS25;FmxTeeUI;emsedge;RaizeComponentsVclDb;fmx;fmxdae;dxSkinBlueRS25;dxTabbedMDIRS25;dxBarDBNavRS25;dxPScxPivotGridLnkRS25;dxSkinDevExpressDarkStyleRS25;dbexpress;IndyCore;dxFlowChartRS25;dsnap;DataSnapCommon;dxBarRS25;dxPSDBTeeChartRS25;dxSkinLiquidSkyRS25;dxdborRS25;uniTools25;DataSnapConnectors;dxPScxExtCommonRS25;cxPivotGridRS25;dxNavBarRS25;cxSchedulerRibbonStyleEventEditorRS25;FireDACOracleDriver;DBXMySQLDriver;dxSkinCoffeeRS25;DBXFirebirdDriver;FireDACCommonODBC;dxSkinOffice2010SilverRS25;cxTreeListRS25;IndyIPCommon;dxSkinLondonLiquidSkyRS25;vcl;dxBarExtItemsRS25;dxSkinsCoreRS25;dxComnRS25;FireDACDb2Driver;dxSkinWhiteprintRS25;dxPSdxDBTVLnkRS25;dxSkinVisualStudio2013BlueRS25;uniGUI25;dxSkinGlassOceansRS25;dxSkinMetropolisDarkRS25;dxSkinOffice2013DarkGrayRS25;dxSkinSharpPlusRS25;TeeDB;dxSkinCaramelRS25;dxServerModeRS25;dxPScxPCProdRS25;FireDACPgDriver;ibmonitor;FireDACASADriver;cxEditorsRS25;dxSkiniMaginaryRS25;dxEMFRS25;FlexCel_Core;ibxpress;Tee;DataSnapServer;ibxbindings;dxPsPrVwAdvRS25;vclwinx;FireDACDSDriver;cxDataRS25;cxTreeListdxBarPopupMenuRS25;dxSkinSevenClassicRS25;CustomIPTransport;vcldsnap;dxPSdxOCLnkRS25;dxSkinSharpRS25;cxSchedulerWebServiceStorageRS25;bindcomp;DBXInformixDriver;dxSkinVisualStudio2013DarkRS25;cxSchedulerRS25;dxBarExtDBItemsRS25;dxSkinOffice2010BlackRS25;dxDBXServerModeRS25;dxFireDACEMFRS25;dxGDIPlusRS25;dxSkinDevExpressStyleRS25;dxPSdxGaugeControlLnkRS25;dbxcds;VCL_FlexCel_Core;adortl;FlexCel_Render;dxPSdxDBOCLnkRS25;dxRibbonRS25;dsnapxml;dxSpellCheckerRS25;dbrtl;inetdbxpress;IndyProtocols;uniGUI25VCL;dxSkinSummer2008RS25;dxPSdxMapControlLnkRS25;dxSkinXmas2008BlueRS25;fmxase;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+        <BT_BuildType>Debug</BT_BuildType>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -85,6 +103,10 @@
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
+        <AppEnableHighDPI>true</AppEnableHighDPI>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
@@ -92,6 +114,10 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
+        <AppEnableHighDPI>true</AppEnableHighDPI>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppEnableHighDPI>true</AppEnableHighDPI>
     </PropertyGroup>
@@ -106,6 +132,11 @@
         <DCCReference Include="..\..\src\CowORM.Commons.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.QueryBuilder.pas"/>
         <DCCReference Include="..\..\src\CowORM.Interfaces.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.Columns.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Constants.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.Tables.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Helpers.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.QueryCondition.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -128,6 +159,18 @@
                 </Source>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="Win64\Debug\VCL.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>VCL.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\VCL.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
+                        <RemoteName>VCL.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win32\Debug\VCL.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>VCL.exe</RemoteName>
@@ -552,7 +595,7 @@
             </Deployment>
             <Platforms>
                 <Platform value="Win32">True</Platform>
-                <Platform value="Win64">False</Platform>
+                <Platform value="Win64">True</Platform>
             </Platforms>
         </BorlandProject>
         <ProjectFileVersion>12</ProjectFileVersion>
