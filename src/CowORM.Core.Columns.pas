@@ -3,10 +3,10 @@ unit CowORM.Core.Columns;
 interface
 
 uses
-  CowORM.Commons, CowORM.Interfaces, System.Rtti;
+  CowORM.Commons, System.Rtti;
 
 type
-  TColumn = class(TCustomAttribute, IColumn)
+  TColumn = class(TCustomAttribute)
   private
     sName      : string;
     iSize      : Integer;
@@ -17,15 +17,10 @@ type
     sCollate   : string;
     oDefaultVal: TValue;
   protected
-    FRefCount: Integer;
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
   public
     constructor Create(pName: string; pType: TColumnType; pSize, pScale: Integer;
       pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
 
-    property RefCount  : Integer     read FRefCount;
     property Name      : string      read sName       write sName;
     property Size      : Integer     read iSize       write iSize;
     property Scale     : Integer     read iScale      write iScale;
@@ -36,45 +31,41 @@ type
     property DefaultVal: TValue      read oDefaultVal write oDefaultVal;
   end;
 
-  TSmallIntColumn = class(TColumn, IColumn)
+  TSmallIntColumn = class(TColumn)
   public
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property NotNull;
     property FieldType;
     property DefaultVal;
   end;
 
-  TIntegerColumn = class(TColumn, IColumn)
+  TIntegerColumn = class(TColumn)
   public
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property NotNull;
     property FieldType;
     property DefaultVal;
   end;
 
-  TBigIntColumn = class(TColumn, IColumn)
+  TBigIntColumn = class(TColumn)
   public
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property NotNull;
     property FieldType;
     property DefaultVal;
   end;
 
-  TDecimalColumn = class(TColumn, IColumn)
+  TDecimalColumn = class(TColumn)
   public
     constructor Create(pName: string; pSize, pScale: Integer; pNotNull: Boolean;
         pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property Scale;
@@ -83,12 +74,11 @@ type
     property DefaultVal;
   end;
 
-  TNumericColumn = class(TColumn, IColumn)
+  TNumericColumn = class(TColumn)
   public
     constructor Create(pName: string; pSize, pScale: Integer; pNotNull: Boolean;
         pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property Scale;
@@ -97,12 +87,11 @@ type
     property DefaultVal;
   end;
 
-  TFloatColumn = class(TColumn, IColumn)
+  TFloatColumn = class(TColumn)
   public
     constructor Create(pName: string; pSize, pScale: Integer; pNotNull: Boolean;
         pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property Scale;
@@ -111,12 +100,11 @@ type
     property DefaultVal;
   end;
 
-  TDoublePrecisionColumn = class(TColumn, IColumn)
+  TDoublePrecisionColumn = class(TColumn)
   public
     constructor Create(pName: string; pSize: Integer; pNotNull: Boolean;
         pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property Scale;
@@ -125,45 +113,41 @@ type
     property DefaultVal;
   end;
 
-  TDateColumn = class(TColumn, IColumn)
+  TDateColumn = class(TColumn)
   public
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property NotNull;
     property FieldType;
     property DefaultVal;
   end;
 
-  TTimeColumn = class(TColumn, IColumn)
+  TTimeColumn = class(TColumn)
   public
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property NotNull;
     property FieldType;
     property DefaultVal;
   end;
 
-  TTimeStampColumn = class(TColumn, IColumn)
+  TTimeStampColumn = class(TColumn)
   public
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property NotNull;
     property FieldType;
     property DefaultVal;
   end;
 
-  TCharColumn = class(TColumn, IColumn)
+  TCharColumn = class(TColumn)
   public
     constructor Create(pName: string; pType: TColumnType; pNotNull: Boolean;
       pCharset, pCollate: string; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property NotNull;
@@ -173,12 +157,11 @@ type
     property DefaultVal;
   end;
 
-  TVarcharColumn = class(TColumn, IColumn)
+  TVarcharColumn = class(TColumn)
   public
     constructor Create(pName: string; pType: TColumnType; pSize: Integer;
       pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property NotNull;
@@ -188,12 +171,11 @@ type
     property DefaultVal;
   end;
 
-  TBlobBinaryColumn = class(TColumn, IColumn)
+  TBlobBinaryColumn = class(TColumn)
   public
     constructor Create(pName: string; pType: TColumnType; pSize: Integer;
       pNotNull: Boolean; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property NotNull;
@@ -201,12 +183,11 @@ type
     property DefaultVal;
   end;
 
-  TBlobTextColumn = class(TColumn, IColumn)
+  TBlobTextColumn = class(TColumn)
   public
     constructor Create(pName: string; pType: TColumnType; pSize: Integer;
       pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
 
-    property RefCount;
     property Name;
     property Size;
     property NotNull;
@@ -237,24 +218,6 @@ begin
     sCollate    := pCollate;
     oDefaultVal := pDefaultVal;
   end;
-end;
-
-function TColumn.QueryInterface(const IID: TGUID; out Obj): HResult;
-begin
-  if GetInterface(IID, Obj) then
-    Result := S_OK
-  else
-    Result := E_NOINTERFACE;
-end;
-
-function TColumn._AddRef: Integer;
-begin
-  Result := -1;
-end;
-
-function TColumn._Release: Integer;
-begin
-  Result := -1;
 end;
 
 { TSmallIntColumn }

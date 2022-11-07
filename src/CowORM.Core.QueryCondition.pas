@@ -3,39 +3,96 @@ unit CowORM.Core.QueryCondition;
 interface
 
 uses
-  CowORM.Commons, CowORM.Interfaces;
+  CowORM.Commons, CowORM.Core.Columns, SysUtils;
 
 type
-  TQueryCondition = class(TObject, IQueryCondition)
-  protected
-    FRefCount: Integer;
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+  TQueryCondition = class(TObject)
+  private
+    sCondition    : string;
+    sLeftCondition: string;
   public
-    property RefCount: Integer read FRefCount;
+    constructor Create(Cond: string); overload;
+    constructor Create(LeftField, RightField: string); overload;
+    constructor Create(LeftField, Cond, RightField: string); overload;
+    constructor Create(LeftField: string; Values: TArray<string>); overload;
+    constructor Create(LeftField, Cond: string; Values: TArray<string>); overload;
+    constructor Create(LeftField, RightField: TColumn); overload;
+    constructor Create(LeftField: TColumn; Cond: string; RightField: TColumn); overload;
+    constructor Create(LeftField: TColumn; Values: TArray<string>); overload;
+    constructor Create(LeftField: TColumn; Cond: string; Values: TArray<string>); overload;
+
+    function setLeftCondition(pCond: string): TQueryCondition;
+
+    property Condition    : string read sCondition;
+    property LeftCondition: string read sLeftCondition write sLeftCondition;
   end;
 
 implementation
 
 { TQueryCondition }
 
-function TQueryCondition.QueryInterface(const IID: TGUID; out Obj): HResult;
+constructor TQueryCondition.Create(Cond: string);
 begin
-  if GetInterface(IID, Obj) then
-    Result := S_OK
-  else
-    Result := E_NOINTERFACE;
+  inherited Create;
+  sLeftCondition := 'and';
+  sCondition     := Cond;
 end;
 
-function TQueryCondition._AddRef: Integer;
+constructor TQueryCondition.Create(LeftField, RightField: string);
 begin
-  Result := -1;
+  Create(LeftField, '=', RightField);
 end;
 
-function TQueryCondition._Release: Integer;
+constructor TQueryCondition.Create(LeftField, Cond, RightField: string);
 begin
-  Result := -1;
+  Create(LeftField + ' ' + Cond + ' ' + RightField);
+end;
+
+constructor TQueryCondition.Create(LeftField: string; Values: TArray<string>);
+begin
+  Create(LeftField, 'in', Values);
+end;
+
+constructor TQueryCondition.Create(LeftField, Cond: string;
+  Values: TArray<string>);
+var
+  ValueStr: string;
+  i: Integer;
+begin
+  ValueStr := '(';
+  for I := 0 to (Length(Values) - 1) do
+    ValueStr := ValueStr + QuotedStr(Values[i]) + ', ';
+  SetLength(ValueStr, Length(ValueStr) - Length(', '));
+  ValueStr := ValueStr + ')';
+  Create(LeftField + ' ' + Cond + ' ' + ValueStr);
+end;
+
+constructor TQueryCondition.Create(LeftField: TColumn; Cond: string;
+  RightField: TColumn);
+begin
+  Create(LeftField.Name, Cond, RightField.Name);
+end;
+
+constructor TQueryCondition.Create(LeftField, RightField: TColumn);
+begin
+  Create(LeftField.Name, RightField.Name);
+end;
+
+function TQueryCondition.setLeftCondition(pCond: string): TQueryCondition;
+begin
+  Result := Self;
+  Self.sLeftCondition := pCond;
+end;
+
+constructor TQueryCondition.Create(LeftField: TColumn; Cond: string;
+  Values: TArray<string>);
+begin
+  Create(LeftField.Name, Cond, Values);
+end;
+
+constructor TQueryCondition.Create(LeftField: TColumn; Values: TArray<string>);
+begin
+  Create(LeftField.Name, Values);
 end;
 
 end.

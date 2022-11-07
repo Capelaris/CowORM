@@ -131,12 +131,12 @@
         </DCCReference>
         <DCCReference Include="..\..\src\CowORM.Commons.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.QueryBuilder.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Interfaces.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.Columns.pas"/>
         <DCCReference Include="..\..\src\CowORM.Constants.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.Tables.pas"/>
         <DCCReference Include="..\..\src\CowORM.Helpers.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.QueryCondition.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.QueryJoin.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
