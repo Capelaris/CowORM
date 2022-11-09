@@ -6,7 +6,7 @@ uses
   CowORM.Helpers, CowORM.Commons;
 
 type
-  TORMObject<T> = class(TObject)
+  TORMObject = class(TObject)
   private
     { Private Declarations }
     {OldValues: array of TOldValue;
@@ -28,7 +28,7 @@ type
     // Read Functions
     //class function Find(Id: Integer): T; overload;
     //class function Find(Id: Integer; Configs: TConfigurations): T; overload;
-    class function FindAll: TArray<T>;// overload;
+    class function FindAll: TArray<TORMObject>;// overload;
     //class function FindAll(Configs: TConfigurations): TArray<T>; overload;
     // Update Function
     //procedure Save;
@@ -42,15 +42,15 @@ implementation
 
 { TORMObject<T> }
 
-constructor TORMObject<T>.Create;
+constructor TORMObject.Create;
 begin
   inherited Create;
   Self.isInserted := False;
 end;
 
-class function TORMObject<T>.FindAll: TArray<T>;
+class function TORMObject.FindAll: TArray<TORMObject>;
 begin
-  Result := TArray<T>.Create();
+  Result := TArray<TORMObject>.Create();
 
   try
     //Result := DBConnection.ReturnRecord<T>(SQL);

@@ -1,4 +1,4 @@
-unit CowORM.Core.QueryParams;
+unit CowORM.Core.QueryParam;
 
 interface
 
@@ -40,18 +40,18 @@ end;
 
 constructor TQueryParam.Create(pFieldName: string; pValue: TValue);
 begin
-  inherited Create(pFieldName, pFieldName, pValue);
+  Create(pFieldName, pFieldName, pValue);
 end;
 
 constructor TQueryParam.Create(pColumn: TColumn; pValue: TValue);
 begin
-  inherited Create(pColumn.Name, pColumn.Name, pValue);
+  Create(pColumn.Name, pColumn.Name, pValue);
 end;
 
 constructor TQueryParam.Create(pColumn: TColumn; pParamName: string;
   pValue: TValue);
 begin
-  inherited Create(pColumn.Name, pParamName, pValue);
+  Create(pColumn.Name, pParamName, pValue);
 end;
 
 end.

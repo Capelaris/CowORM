@@ -307,18 +307,18 @@ begin
       if i <> 0 then
         sSQL := sSQL + Spaces(7);
 
-      sSQL := sSQL + Coalesce([aColumns[i].TableLabel, oTable.Alias]) +
+      sSQL := sSQL + Coalesce([aColumns[i].TableLabel, GetTableLabel(1)]) +
           '.' + aColumns[i].Name + ',' + #13#10;
     end;
 
     SetLength(sSQL, Length(sSQL) - Length(',' + #13#10));
 
-    sSQL := sSQL + #13#10 + 'from ' + oTable.Name + ' ' + oTable.Alias;
+    sSQL := sSQL + #13#10 + 'from ' + oTable.Name + ' ' + Coalesce([oTable.Alias, GetTableLabel(1)]);
 
     if Length(aJoins) > 0 then
     begin
       for i := 0 to (Length(aJoins) - 1) do
-        sSQL := sSQL + #13#10 + aJoins[i].GenerateSQL(0, GetTableLabel(i + 1));
+        sSQL := sSQL + #13#10 + aJoins[i].GenerateSQL(0, GetTableLabel(i + 2));
     end;
 
     if Length(aWhere) > 0 then

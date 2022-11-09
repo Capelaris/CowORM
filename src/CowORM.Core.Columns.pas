@@ -158,7 +158,7 @@ type
 
   TCharColumn = class(TColumn)
   public
-    constructor Create(pName: string; pType: TColumnType; pNotNull: Boolean;
+    constructor Create(pName: string; pNotNull: Boolean;
       pCharset, pCollate: string; pDefaultVal: TValue);
 
     property Name;
@@ -173,8 +173,8 @@ type
 
   TVarcharColumn = class(TColumn)
   public
-    constructor Create(pName: string; pType: TColumnType; pSize: Integer;
-      pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
+    constructor Create(pName: string; pSize: Integer; pNotNull: Boolean;
+      pCharset, pCollate: string; pDefaultVal: TValue);
 
     property Name;
     property TableLabel;
@@ -188,8 +188,8 @@ type
 
   TBlobBinaryColumn = class(TColumn)
   public
-    constructor Create(pName: string; pType: TColumnType; pSize: Integer;
-      pNotNull: Boolean; pDefaultVal: TValue);
+    constructor Create(pName: string; pSize: Integer; pNotNull: Boolean;
+      pDefaultVal: TValue);
 
     property Name;
     property TableLabel;
@@ -201,8 +201,8 @@ type
 
   TBlobTextColumn = class(TColumn)
   public
-    constructor Create(pName: string; pType: TColumnType; pSize: Integer;
-      pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
+    constructor Create(pName: string; pSize: Integer; pNotNull: Boolean;
+      pCharset, pCollate: string; pDefaultVal: TValue);
 
     property Name;
     property TableLabel;
@@ -320,34 +320,32 @@ end;
 
 { TCharColumn }
 
-constructor TCharColumn.Create(pName: string; pType: TColumnType;
-  pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
+constructor TCharColumn.Create(pName: string; pNotNull: Boolean;
+  pCharset, pCollate: string; pDefaultVal: TValue);
 begin
   inherited Create(pName, ctChar, 1, -1, pNotNull, pCharset, pCollate, pDefaultVal);
 end;
 
 { TVarcharColumn }
 
-constructor TVarcharColumn.Create(pName: string; pType: TColumnType;
-  pSize: Integer; pNotNull: Boolean; pCharset, pCollate: string;
-  pDefaultVal: TValue);
+constructor TVarcharColumn.Create(pName: string; pSize: Integer;
+  pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
 begin
   inherited Create(pName, ctVarchar, pSize, -1, pNotNull, pCharset, pCollate, pDefaultVal);
 end;
 
 { TBlobBinaryColumn }
 
-constructor TBlobBinaryColumn.Create(pName: string; pType: TColumnType;
-  pSize: Integer; pNotNull: Boolean; pDefaultVal: TValue);
+constructor TBlobBinaryColumn.Create(pName: string; pSize: Integer;
+  pNotNull: Boolean; pDefaultVal: TValue);
 begin
   inherited Create(pName, ctVarchar, pSize, -1, pNotNull, '', '', pDefaultVal);
 end;
 
 { TBlobTextColumn }
 
-constructor TBlobTextColumn.Create(pName: string; pType: TColumnType;
-  pSize: Integer; pNotNull: Boolean; pCharset, pCollate: string;
-  pDefaultVal: TValue);
+constructor TBlobTextColumn.Create(pName: string; pSize: Integer;
+  pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
 begin
   inherited Create(pName, ctVarchar, pSize, -1, pNotNull, pCharset, pCollate, pDefaultVal);
 end;

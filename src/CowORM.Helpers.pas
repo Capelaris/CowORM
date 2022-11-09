@@ -67,11 +67,11 @@ begin
       Value := Floor(Index / Length(Alphabet));
       Index := Index - (Value * Length(Alphabet));
 
-      Result := Result + Alphabet[Value - 1];
+      Result := Result + Alphabet[Value];
     end;
   end;
 
-  Result := Result + Alphabet[Index - 1];
+  Result := Result + Alphabet[Index];
 end;
 
 function GetDriverName(pType: TConnectionType): string;

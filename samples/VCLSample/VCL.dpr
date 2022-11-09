@@ -12,7 +12,12 @@ uses
   CowORM.Core.QueryCondition in '..\..\src\CowORM.Core.QueryCondition.pas',
   CowORM.Core.QueryJoin in '..\..\src\CowORM.Core.QueryJoin.pas',
   CowORM.Core.ORMObject in '..\..\src\CowORM.Core.ORMObject.pas',
-  CowORM.Core.Connection in '..\..\src\CowORM.Core.Connection.pas';
+  CowORM.Core.Connection in '..\..\src\CowORM.Core.Connection.pas',
+  CowORM.Core.QueryParam in '..\..\src\CowORM.Core.QueryParam.pas',
+  CowORM.Core.Configurations in '..\..\src\CowORM.Core.Configurations.pas',
+  CowORM.Core.QueryResult in '..\..\src\CowORM.Core.QueryResult.pas',
+  Customer in 'models\Customer.pas',
+  CowORM in '..\..\src\CowORM.pas';
 
 {$R *.res}
 
