@@ -9,6 +9,7 @@ type
   TColumn = class(TCustomAttribute)
   private
     sName      : string;
+    sTableLabel: string;
     iSize      : Integer;
     iScale     : Integer;
     bNotNull   : Boolean;
@@ -19,9 +20,11 @@ type
   protected
   public
     constructor Create(pName: string; pType: TColumnType; pSize, pScale: Integer;
-      pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
+      pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue;
+      pTableLabel: string = '');
 
     property Name      : string      read sName       write sName;
+    property TableLabel: string      read sTableLabel write sTableLabel;
     property Size      : Integer     read iSize       write iSize;
     property Scale     : Integer     read iScale      write iScale;
     property NotNull   : Boolean     read bNotNull    write bNotNull;
@@ -36,6 +39,7 @@ type
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property NotNull;
     property FieldType;
     property DefaultVal;
@@ -46,6 +50,7 @@ type
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property NotNull;
     property FieldType;
     property DefaultVal;
@@ -56,6 +61,7 @@ type
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property NotNull;
     property FieldType;
     property DefaultVal;
@@ -67,6 +73,7 @@ type
         pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property Scale;
     property NotNull;
@@ -80,6 +87,7 @@ type
         pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property Scale;
     property NotNull;
@@ -93,6 +101,7 @@ type
         pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property Scale;
     property NotNull;
@@ -106,6 +115,7 @@ type
         pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property Scale;
     property NotNull;
@@ -118,6 +128,7 @@ type
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property NotNull;
     property FieldType;
     property DefaultVal;
@@ -128,6 +139,7 @@ type
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property NotNull;
     property FieldType;
     property DefaultVal;
@@ -138,6 +150,7 @@ type
     constructor Create(pName: string; pNotNull: Boolean; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property NotNull;
     property FieldType;
     property DefaultVal;
@@ -149,6 +162,7 @@ type
       pCharset, pCollate: string; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property NotNull;
     property FieldType;
@@ -163,6 +177,7 @@ type
       pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property NotNull;
     property FieldType;
@@ -177,6 +192,7 @@ type
       pNotNull: Boolean; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property NotNull;
     property FieldType;
@@ -189,6 +205,7 @@ type
       pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue);
 
     property Name;
+    property TableLabel;
     property Size;
     property NotNull;
     property FieldType;
@@ -203,13 +220,14 @@ implementation
 
 constructor TColumn.Create(pName: string; pType: TColumnType; pSize,
   pScale: Integer; pNotNull: Boolean; pCharset, pCollate: string;
-  pDefaultVal: TValue);
+  pDefaultVal: TValue; pTableLabel: string);
 begin
   inherited Create;
 
   with Self do
   begin
     sName       := pName;
+    sTableLabel := pTableLabel;
     oFieldType  := pType;
     iSize       := pSize;
     iScale      := pScale;

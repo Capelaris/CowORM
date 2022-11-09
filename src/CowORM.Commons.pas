@@ -4,6 +4,8 @@ interface
 
 type
   TColumnType = (
+    //Unknown
+    ctUnknown,
     //Integers
     ctSmallInt, ctInteger, ctBigInt,
     //Floats
@@ -18,6 +20,8 @@ type
   TJoinType = (jtNone, jtInner, jtLeft, jtRight, jtOuter);
 
   TQueryType = (qtSelect, qtUpdate, qtDelete, qtInsert);
+
+  TConnectionType = (ctFB, ctMYSQL);
 
 implementation
 

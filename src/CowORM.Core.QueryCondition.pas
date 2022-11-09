@@ -3,7 +3,7 @@ unit CowORM.Core.QueryCondition;
 interface
 
 uses
-  CowORM.Commons, CowORM.Core.Columns, SysUtils;
+  CowORM.Commons, CowORM.Helpers, CowORM.Core.Columns, SysUtils;
 
 type
   TQueryCondition = class(TObject)
@@ -21,7 +21,9 @@ type
     constructor Create(LeftField: TColumn; Values: TArray<string>); overload;
     constructor Create(LeftField: TColumn; Cond: string; Values: TArray<string>); overload;
 
-    function setLeftCondition(pCond: string): TQueryCondition;
+    function SetLeftCondition(pCond: string): TQueryCondition;
+
+    function GenerateSQL(pSpaces: Integer = 0; pLeftCond: Boolean = False): string;
 
     property Condition    : string read sCondition;
     property LeftCondition: string read sLeftCondition write sLeftCondition;
@@ -78,7 +80,7 @@ begin
   Create(LeftField.Name, RightField.Name);
 end;
 
-function TQueryCondition.setLeftCondition(pCond: string): TQueryCondition;
+function TQueryCondition.SetLeftCondition(pCond: string): TQueryCondition;
 begin
   Result := Self;
   Self.sLeftCondition := pCond;
@@ -88,6 +90,14 @@ constructor TQueryCondition.Create(LeftField: TColumn; Cond: string;
   Values: TArray<string>);
 begin
   Create(LeftField.Name, Cond, Values);
+end;
+
+function TQueryCondition.GenerateSQL(pSpaces: Integer; pLeftCond: Boolean): string;
+begin
+  Result := sCondition;
+
+  if pLeftCond then
+    Result := ' ' + sLeftCondition + #13#10 + Spaces(pSpaces) + Result;
 end;
 
 constructor TQueryCondition.Create(LeftField: TColumn; Values: TArray<string>);

@@ -4,12 +4,14 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, CowORM.Core.QueryBuilder;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, CowORM.Core.QueryBuilder,
+  CowORM.Core.QueryCondition;
 
 type
   TFMainForm = class(TForm)
-    btn1: TButton;
-    procedure btn1Click(Sender: TObject);
+    btnSelectQuery: TButton;
+    mmoQuery: TMemo;
+    procedure btnSelectQueryClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -23,12 +25,18 @@ implementation
 
 {$R *.dfm}
 
-procedure TFMainForm.btn1Click(Sender: TObject);
+procedure TFMainForm.btnSelectQueryClick(Sender: TObject);
 var
   qry: TSelectQuery;
 begin
-  qry := TSelectQuery.Create('teste');
-  qry.
+  qry := TSelectQuery.Create('tabela1')
+      .Where('a.col1 = b.col1')
+      .Where('a.col2', 'b.col2')
+      .OrWhere('a.col3', '<>', 'b.col3')
+      .LeftJoin('tabela2',[
+          TQueryCondition.Create('b.col1', ['teste1', 'teste2'])
+      ]);
+  mmoQuery.Lines.Text := qry.GetSQL(['col1', 'col2', 'col3']);
 end;
 
 end.

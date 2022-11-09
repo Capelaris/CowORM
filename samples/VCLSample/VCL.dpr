@@ -10,7 +10,9 @@ uses
   CowORM.Core.Tables in '..\..\src\CowORM.Core.Tables.pas',
   CowORM.Helpers in '..\..\src\CowORM.Helpers.pas',
   CowORM.Core.QueryCondition in '..\..\src\CowORM.Core.QueryCondition.pas',
-  CowORM.Core.QueryJoin in '..\..\src\CowORM.Core.QueryJoin.pas';
+  CowORM.Core.QueryJoin in '..\..\src\CowORM.Core.QueryJoin.pas',
+  CowORM.Core.ORMObject in '..\..\src\CowORM.Core.ORMObject.pas',
+  CowORM.Core.Connection in '..\..\src\CowORM.Core.Connection.pas';
 
 {$R *.res}
 

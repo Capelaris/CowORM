@@ -137,6 +137,8 @@
         <DCCReference Include="..\..\src\CowORM.Helpers.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.QueryCondition.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.QueryJoin.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.ORMObject.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.Connection.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

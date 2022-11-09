@@ -13,13 +13,34 @@ object FMainForm: TFMainForm
   OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
-  object btn1: TButton
-    Left = 200
-    Top = 144
-    Width = 75
-    Height = 25
-    Caption = 'btn1'
+  object btnSelectQuery: TButton
+    AlignWithMargins = True
+    Left = 3
+    Top = 264
+    Width = 629
+    Height = 32
+    Align = alBottom
+    Caption = 'btnSelectQuery'
     TabOrder = 0
-    OnClick = btn1Click
+    OnClick = btnSelectQueryClick
+  end
+  object mmoQuery: TMemo
+    AlignWithMargins = True
+    Left = 3
+    Top = 3
+    Width = 629
+    Height = 255
+    Align = alClient
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 1
+    ExplicitLeft = 232
+    ExplicitTop = 128
+    ExplicitWidth = 185
+    ExplicitHeight = 89
   end
 end
