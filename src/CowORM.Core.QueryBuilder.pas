@@ -59,6 +59,8 @@ type
     constructor Create(pTable: string); overload;
     constructor Create(pTable: TTable); overload;
 
+    function SetColumns(pColumns: TArray<TColumn>): TSelectQuery;
+
     function Join(pJoinType: TJoinType; pTable: TTable; pConditions: TArray<TQueryCondition>): TSelectQuery; overload;
     function Join(pJoinType: TJoinType; pTable: string; pConditions: TArray<TQueryCondition>): TSelectQuery; overload;
     function Join(pTable: TTable; pConditions: TArray<TQueryCondition>): TSelectQuery; overload;
@@ -301,67 +303,67 @@ var
   i: Integer;
 begin
   try
-    sSQL := 'select ';
-    for i := 0 to (Length(aColumns) - 1) do
+    Self.sSQL := 'select ';
+    for i := 0 to (Length(Self.aColumns) - 1) do
     begin
       if i <> 0 then
-        sSQL := sSQL + Spaces(7);
+        Self.sSQL := Self.sSQL + Spaces(7);
 
-      sSQL := sSQL + Coalesce([aColumns[i].TableLabel, GetTableLabel(1)]) +
-          '.' + aColumns[i].Name + ',' + #13#10;
+      Self.sSQL := Self.sSQL + Coalesce([Self.aColumns[i].TableLabel, GetTableLabel(1)]) +
+          '.' + Self.aColumns[i].Name + ',' + #13#10;
     end;
 
-    SetLength(sSQL, Length(sSQL) - Length(',' + #13#10));
+    SetLength(Self.sSQL, Length(Self.sSQL) - Length(',' + #13#10));
 
-    sSQL := sSQL + #13#10 + 'from ' + oTable.Name + ' ' + Coalesce([oTable.Alias, GetTableLabel(1)]);
+    Self.sSQL := Self.sSQL + #13#10 + 'from ' + Self.oTable.Name + ' ' + Coalesce([Self.oTable.Alias, GetTableLabel(1)]);
 
-    if Length(aJoins) > 0 then
+    if Length(Self.aJoins) > 0 then
     begin
-      for i := 0 to (Length(aJoins) - 1) do
-        sSQL := sSQL + #13#10 + aJoins[i].GenerateSQL(0, GetTableLabel(i + 2));
+      for i := 0 to (Length(Self.aJoins) - 1) do
+        Self.sSQL := Self.sSQL + #13#10 + Self.aJoins[i].GenerateSQL(0, GetTableLabel(i + 2));
     end;
 
-    if Length(aWhere) > 0 then
+    if Length(Self.aWhere) > 0 then
     begin
-      sSQL := sSQL + #13#10 + 'where ';
-      for i := 0 to (Length(aWhere) - 1) do
-        sSQL := sSQL + aWhere[i].GenerateSQL(6, (i <> 0));
+      Self.sSQL := Self.sSQL + #13#10 + 'where ';
+      for i := 0 to (Length(Self.aWhere) - 1) do
+        Self.sSQL := Self.sSQL + Self.aWhere[i].GenerateSQL(6, (i <> 0));
     end;
 
-    if Length(aOrderBy) > 0 then
+    if Length(Self.aOrderBy) > 0 then
     begin
-      sSQL := sSQL + #13#10 + 'order by ';
-      for i := 0 to (Length(aColumns) - 1) do
+      Self.sSQL := Self.sSQL + #13#10 + 'order by ';
+      for i := 0 to (Length(Self.aOrderBy) - 1) do
       begin
         if i <> 0 then
-          sSQL := sSQL + Spaces(9);
+          Self.sSQL := Self.sSQL + Spaces(9);
 
-        sSQL := sSQL + Coalesce([aColumns[i].TableLabel, oTable.Alias]) +
-            '.' + aColumns[i].Name + ',' + #13#10;
+        Self.sSQL := Self.sSQL + Coalesce([Self.aOrderBy[i].TableLabel, oTable.Alias]) +
+            '.' + Self.aOrderBy[i].Name + ',' + #13#10;
       end;
 
-      SetLength(sSQL, Length(sSQL) - Length(',' + #13#10));
+      SetLength(Self.sSQL, Length(Self.sSQL) - Length(',' + #13#10));
     end;
   except
     on E: Exception do
     begin
-      sSQL := '';
+      Self.sSQL := '';
       raise Exception.Create('Erro ao gerar SelectSQL: ' + E.Message);
     end;
   end;
 
-  Result := sSQL;
+  Result := Self.sSQL;
 end;
 
 function TSelectQuery.GetSQL: string;
 begin
-  Result := GetSQL(TArray<TColumn>.Create());
+  Result := GenerateSQL;
 end;
 
 function TSelectQuery.GetSQL(pColumns: TArray<TColumn>): string;
 begin
-  aColumns := pColumns;
-  Result := GenerateSQL;
+  Self.SetColumns(pColumns);
+  Result := GetSQL;
 end;
 
 function TSelectQuery.GetSQL(pColumns: TArray<string>): string;
@@ -556,6 +558,12 @@ function TSelectQuery.RightJoin(pTable: string;
 begin
   Result := Self;
   AddJoin(TQueryJoin.Create(jtRight, pTable, pConditions));
+end;
+
+function TSelectQuery.SetColumns(pColumns: TArray<TColumn>): TSelectQuery;
+begin
+  aColumns := pColumns;
+  Result   := Self;
 end;
 
 function TSelectQuery.Where(pLeftField, pRightField: string): TSelectQuery;

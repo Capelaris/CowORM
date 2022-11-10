@@ -55,6 +55,15 @@ begin
         end;
       end;
     end;
+
+    try
+      Open;
+    except
+      on E: Exception do
+      begin
+        raise Exception.Create('Error in SelectSQL: ' + E.Message);
+      end;
+    end;
   end;
 end;
 

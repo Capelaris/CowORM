@@ -3,11 +3,12 @@ unit CowORM.Core.Connection;
 interface
 
 uses
-  CowORM.Commons, CowORM.Helpers, CowORM.Core.QueryParam, CowORM.Core.Configurations, 
+  CowORM.Commons, CowORM.Helpers, CowORM.Core.QueryParam, CowORM.Core.Configurations,
   CowORM.Core.QueryResult, SysUtils,
   //Default FireDAC units
   FireDAC.Comp.Client, FireDAC.Comp.UI, FireDAC.Stan.Def, FireDAC.DApt,
-  FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Stan.Async, FireDAC.Phys, FireDAC.UI.Intf, FireDAC.VCLUI.Wait,
+  FireDAC.Stan.Intf,
   //FireBird
   FireDAC.Phys.FB, FireDAC.Phys.FBDef,
   //MySQL
@@ -68,6 +69,12 @@ begin
       Port     := Configs.Port;
       UserName := Configs.UserName;
       Password := Configs.Password;
+    end;
+    try
+      Connected := True;
+    except
+      on E: Exception do
+        raise Exception.Create('Error in Database Connection: ' + E.Message);
     end;
   end;
 end;

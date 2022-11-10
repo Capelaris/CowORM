@@ -24,9 +24,6 @@ type
   TQueryType      = CowORM.Commons.TQueryType;
   TConnectionType = CowORM.Commons.TConnectionType;
 
-  //Constants
-  NullVal = CowORM.Constants.NULL_VAL;
-
   //Columns
   TColumn                = CowORM.Core.Columns.TColumn;
   TSmallIntColumn        = CowORM.Core.Columns.TSmallIntColumn;

@@ -14,13 +14,20 @@ type
     constructor Create(pName, pAlias: string); overload;
     constructor Create(pName: string); overload;
 
-    property Name    : string  read sName  write sName;
-    property Alias   : string  read sAlias write sAlias;
+    class function Copy(pObject: TTable): TTable;
+
+    property Name : string  read sName  write sName;
+    property Alias: string  read sAlias write sAlias;
   end;
 
 implementation
 
 { TTable }
+
+class function TTable.Copy(pObject: TTable): TTable;
+begin
+  Result := TTable.Create(pObject.sName, pObject.sAlias);
+end;
 
 constructor TTable.Create(pName: string);
 var

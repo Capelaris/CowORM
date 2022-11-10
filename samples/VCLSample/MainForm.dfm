@@ -11,6 +11,7 @@ object FMainForm: TFMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object btnSelectQuery: TButton
@@ -38,9 +39,5 @@ object FMainForm: TFMainForm
     Font.Style = []
     ParentFont = False
     TabOrder = 1
-    ExplicitLeft = 232
-    ExplicitTop = 128
-    ExplicitWidth = 185
-    ExplicitHeight = 89
   end
 end

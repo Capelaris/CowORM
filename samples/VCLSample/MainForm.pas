@@ -4,14 +4,14 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, CowORM.Core.QueryBuilder,
-  CowORM.Core.QueryCondition, CowORM.Constants;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, CowORM, Customer;
 
 type
   TFMainForm = class(TForm)
     btnSelectQuery: TButton;
     mmoQuery: TMemo;
     procedure btnSelectQueryClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
@@ -28,7 +28,10 @@ implementation
 procedure TFMainForm.btnSelectQueryClick(Sender: TObject);
 var
   qry: TSelectQuery;
+  Arr: TArray<TCustomer>;
 begin
+  Arr := TCustomer.FindAll<TCustomer>;
+  //mmoQuery.Lines.Text := Arr[0].Name;
   {qry := TSelectQuery.Create('tabela1')
       .Where('a.col1 = b.col1')
       .Where('a.col2', 'b.col2')
@@ -38,6 +41,11 @@ begin
       ]);
   mmoQuery.Lines.Text := qry.GetSQL(['col1', 'col2', 'col3']);  }
 
+end;
+
+procedure TFMainForm.FormShow(Sender: TObject);
+begin
+  //
 end;
 
 end.

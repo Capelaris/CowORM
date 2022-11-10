@@ -16,15 +16,15 @@ type
     FZipCode: string;
     FPhone  : string;
   public
-    [TIntegerColumn('customer_id', True, NullVal)]
+    [TIntegerColumn('customer_id', True)]
     property Id: Integer read FId write FId;
-    [TVarcharColumn('name', 60, False, '', '', NullVal)]
+    [TVarcharColumn('name', 60)]
     property Name: string read FName write FName;
-    [TVarcharColumn('address', 250, False, '', '', NullVal)]
+    [TVarcharColumn('address', 250)]
     property Address: string read FAddress write FAddress;
-    [TVarcharColumn('zipcode', 10, False, '', '', NullVal)]
+    [TVarcharColumn('zipcode', 10)]
     property ZipCode: string read FZipCode write FZipCode;
-    [TVarcharColumn('phone', 14, False, '', '', NullVal)]
+    [TVarcharColumn('phone', 14)]
     property Phone: string read FPhone write FPhone;
   end;
 
