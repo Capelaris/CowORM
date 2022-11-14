@@ -71,7 +71,7 @@ begin
       Password := Configs.Password;
     end;
     try
-      Connected := True;
+      //Connected := True;
     except
       on E: Exception do
         raise Exception.Create('Error in Database Connection: ' + E.Message);

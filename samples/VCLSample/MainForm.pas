@@ -11,7 +11,6 @@ type
     btnSelectQuery: TButton;
     mmoQuery: TMemo;
     procedure btnSelectQueryClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
@@ -41,11 +40,6 @@ begin
       ]);
   mmoQuery.Lines.Text := qry.GetSQL(['col1', 'col2', 'col3']);  }
 
-end;
-
-procedure TFMainForm.FormShow(Sender: TObject);
-begin
-  //
 end;
 
 end.
