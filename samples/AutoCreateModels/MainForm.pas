@@ -3,10 +3,10 @@ unit MainForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, IOUtils, FileCtrl, CowORM,
-  CowORM.Helpers, FireDAC.Comp.Client, System.StrUtils, Invoice, System.Types,
-  Rtti;
+  Winapi.Windows, Winapi.Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls, IOUtils, FileCtrl, CowORM,
+  CowORM.Helpers, FireDAC.Comp.Client, StrUtils, Types, Diagnostics, TimeSpan,
+  Rtti, ComCtrls;
 
 type
   TfMainForm = class(TForm)
@@ -26,6 +26,9 @@ type
     edtParamUsername: TEdit;
     edtParamPassword: TEdit;
     lblDBLocation5: TLabel;
+    pbProgress: TProgressBar;
+    lblStatus: TLabel;
+    lblColunas: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnSearchDBLocationClick(Sender: TObject);
     procedure btnSearchFolderClick(Sender: TObject);
@@ -48,7 +51,7 @@ implementation
 
 procedure TfMainForm.btnGenerateModelsClick(Sender: TObject);
 var
-  Config: TConfigs;
+  Config : TConfigs;
   Conn   : TConnection;
   Select : TSelectQuery;
   Tables : TQueryResult;
@@ -59,13 +62,18 @@ var
   FKUses : string;
   PKAttr : string;
   FileN  : string;
+  Count  : Integer;
+  CountC : Integer;
+  SW     : TStopwatch;
+  Elapsed: TTimeSpan;
+  Seconds: Double;
 begin
   Config := TConfigs.Create(TConnectionType.ctFB, edtParamIP.Text,
       StrToInt(edtParamPort.Text), edtParamUsername.Text, edtParamPassword.Text,
       edtDatabase.Text);
   Conn := TConnection.Create(Config);
 
-  System.SysUtils.ForceDirectories(edtModels.Text);
+  SysUtils.ForceDirectories(edtModels.Text);
 
   for FileN in TDirectory.GetFiles(edtModels.Text, '.*') do 
     TFile.Delete(FileN);
@@ -76,6 +84,14 @@ begin
           .Where('COALESCE(RDB$SYSTEM_FLAG, 0)', '0')
           .Where('RDB$RELATION_TYPE', '0')
           .GetSQL(['RDB$RELATION_NAME']));
+  Count  := 0;
+  CountC := 0;
+  pbProgress.Min := 0;
+  pbProgress.Max := Tables.Query.RecordCount;
+  pbProgress.Position := Count;
+  lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(Tables.Query.RecordCount);
+  lblColunas.Caption  := 'Colunas: ' + IntTostr(CountC);
+  SW        := TStopwatch.StartNew;
 
   Tables.Query.First;
   while not Tables.Query.Eof do
@@ -246,9 +262,12 @@ begin
               FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ';')
         else
           Content.Add('    property ' + FormatTableName(FieldByName('FIELD_NAME').AsString) + ': ' +
-              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ' read F' + 
+              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ' read F' +
               FormatTableName(FieldByName('FIELD_NAME').AsString) + ' write F' +
               FormatTableName(FieldByName('FIELD_NAME').AsString) + ';');
+
+        CountC := CountC + 1;
+        lblColunas.Caption  := 'Colunas: ' + IntTostr(CountC);
 
         Next;
       end;
@@ -259,8 +278,17 @@ begin
       Content.SaveToFile(edtModels.Text + '/' + ClassN + '.pas');
     end;
 
+    Count := Count + 1;
+    pbProgress.Max := Tables.Query.RecordCount;
+    pbProgress.Position := Count;
+    lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(Tables.Query.RecordCount);
+    Application.ProcessMessages;
+
     Tables.Query.Next;
   end;
+  Elapsed := SW.Elapsed;
+  Seconds := (Elapsed.TotalMilliseconds / 1000);
+  ShowMessage('Task Completed in : ' + FormatFloat('###,###,###,##0.0000', Seconds) + 's');
 end;
 
 procedure TfMainForm.btnSearchDBLocationClick(Sender: TObject);
@@ -308,33 +336,33 @@ begin
   with pQuery do
   begin
     Props := '';
-    if FieldByName('field_type').AsString = 'SMALLINT' then
+    if Trim(FieldByName('field_type').AsString) = 'SMALLINT' then
       ClassN := 'TSmallIntColumn('
-    else if FieldByName('field_type').AsString = 'NUMERIC' then
+    else if Trim(FieldByName('field_type').AsString) = 'NUMERIC' then
       ClassN := 'TNumericColumn('
-    else if FieldByName('field_type').AsString = 'DECIMAL' then
+    else if Trim(FieldByName('field_type').AsString) = 'DECIMAL' then
       ClassN := 'TDecimalColumn('   
-    else if FieldByName('field_type').AsString = 'INTEGER' then
+    else if Trim(FieldByName('field_type').AsString) = 'INTEGER' then
       ClassN := 'TIntegerColumn('   
-    else if FieldByName('field_type').AsString = 'BIGINT' then
-      ClassN := 'TBigIntColumn('   
-    else if FieldByName('field_type').AsString = 'FLOAT' then
+    else if Trim(FieldByName('field_type').AsString) = 'BIGINT' then
+      ClassN := 'TBigIntColumn('
+    else if Trim(FieldByName('field_type').AsString) = 'FLOAT' then
       ClassN := 'TFloatColumn('   
-    else if FieldByName('field_type').AsString = 'DOUBLE' then
+    else if Trim(FieldByName('field_type').AsString) = 'DOUBLE' then
       ClassN := 'TDoublePrecisionColumn('   
-    else if FieldByName('field_type').AsString = 'DATE' then
+    else if Trim(FieldByName('field_type').AsString) = 'DATE' then
       ClassN := 'TDateColumn('   
-    else if FieldByName('field_type').AsString = 'TIME' then
+    else if Trim(FieldByName('field_type').AsString) = 'TIME' then
       ClassN := 'TTimeColumn('   
-    else if FieldByName('field_type').AsString = 'TIMESTAMP' then
+    else if Trim(FieldByName('field_type').AsString) = 'TIMESTAMP' then
       ClassN := 'TTimeStampColumn('   
-    else if FieldByName('field_type').AsString = 'CHAR' then
+    else if Trim(FieldByName('field_type').AsString) = 'CHAR' then
       ClassN := 'TCharColumn('   
-    else if FieldByName('field_type').AsString = 'VARCHAR' then
+    else if Trim(FieldByName('field_type').AsString) = 'VARCHAR' then
       ClassN := 'TVarcharColumn('   
-    else if FieldByName('field_type').AsString = 'BLOB SUB_TYPE 1' then
-      ClassN := 'TBlobTextColumn('    
-    else if FieldByName('field_type').AsString = 'BLOB SUB_TYPE 0' then
+    else if Trim(FieldByName('field_type').AsString) = 'BLOB SUB_TYPE 1' then
+      ClassN := 'TBlobTextColumn('
+    else if Trim(FieldByName('field_type').AsString) = 'BLOB SUB_TYPE 0' then
       ClassN := 'TBlobBinaryColumn(';
 
     Props := QuotedStr(FieldByName('field_name').AsString.ToLower);
@@ -346,7 +374,7 @@ begin
     end;
 
     if MatchStr(FieldByName('field_type').AsString, ['NUMERIC', 'DECIMAL', 
-        'FLOAT', 'DOUBLE']) then
+        'FLOAT']) then
     begin  
       Props := Props + ', ' + IntToStr(FieldByName('field_precision').AsInteger);
     end;
@@ -369,33 +397,34 @@ end;
 
 function TfMainForm.GetFieldType(pType: string): string;
 begin
-  if pType = 'SMALLINT' then
+  Result := '';
+  if Trim(pType) = 'SMALLINT' then
     Result := 'Int16'
-  else if pType = 'NUMERIC' then
+  else if Trim(pType) = 'NUMERIC' then
     Result := 'Double'
-  else if pType = 'DECIMAL' then
-    Result := 'Double'   
-  else if pType = 'INTEGER' then
+  else if Trim(pType) = 'DECIMAL' then
+    Result := 'Double'
+  else if Trim(pType) = 'INTEGER' then
     Result := 'Int32'   
-  else if pType = 'BIGINT' then
+  else if Trim(pType) = 'BIGINT' then
     Result := 'Int64'   
-  else if pType = 'FLOAT' then
+  else if Trim(pType) = 'FLOAT' then
     Result := 'Double'   
-  else if pType = 'DOUBLE' then
+  else if Trim(pType) = 'DOUBLE' then
     Result := 'Double'   
-  else if pType = 'DATE' then
+  else if Trim(pType) = 'DATE' then
     Result := 'TDateTime'   
-  else if pType = 'TIME' then
+  else if Trim(pType) = 'TIME' then
     Result := 'TDateTime'   
-  else if pType = 'TIMESTAMP' then
+  else if Trim(pType) = 'TIMESTAMP' then
     Result := 'TDateTime'   
-  else if pType = 'CHAR' then
+  else if Trim(pType) = 'CHAR' then
+    Result := 'string'
+  else if Trim(pType) = 'VARCHAR' then
     Result := 'string'   
-  else if pType = 'VARCHAR' then
-    Result := 'string'   
-  else if pType = 'BLOB SUB_TYPE 1' then
+  else if Trim(pType) = 'BLOB SUB_TYPE 1' then
     Result := 'string'    
-  else if pType = 'BLOB SUB_TYPE 0' then
+  else if Trim(pType) = 'BLOB SUB_TYPE 0' then
     Result := 'string';
 end;
 

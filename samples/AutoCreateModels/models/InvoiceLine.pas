@@ -21,7 +21,7 @@ type
     property Invoice: TInvoice read FInvoice write FInvoice;
     [TIntegerColumn('product_id', True)]
     property Product: TProduct read FProduct write FProduct;
-    [TNumericColumn('quantity', 15, 0, True)]
+    [TNumericColumn('quantity', 15, 0, False)]
     property Quantity: Double read FQuantity write FQuantity;
     [TNumericColumn('sale_price', 15, 2, True)]
     property SalePrice: Double read FSalePrice write FSalePrice;

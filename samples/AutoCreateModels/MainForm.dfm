@@ -30,6 +30,22 @@ object fMainForm: TfMainForm
     Height = 15
     Caption = 'Models Folder'
   end
+  object lblStatus: TLabel
+    Left = 8
+    Top = 159
+    Width = 72
+    Height = 15
+    Caption = 'Tabelas: 0/0'
+  end
+  object lblColunas: TLabel
+    Left = 260
+    Top = 159
+    Width = 62
+    Height = 15
+    BiDiMode = bdRightToLeft
+    Caption = 'Colunas: 0'
+    ParentBiDiMode = False
+  end
   object edtDatabase: TEdit
     Left = 119
     Top = 8
@@ -140,5 +156,12 @@ object fMainForm: TfMainForm
       TabOrder = 3
       Text = 'masterkey'
     end
+  end
+  object pbProgress: TProgressBar
+    Left = 8
+    Top = 180
+    Width = 314
+    Height = 22
+    TabOrder = 6
   end
 end

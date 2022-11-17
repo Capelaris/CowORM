@@ -14,7 +14,7 @@ type
   public
     [TIntegerColumn('webrole_id', True)]
     property WebroleId: Int32 read FWebroleId write FWebroleId;
-    [TVarcharColumn('name', 63, True, 'UTF8', 'UTF8')]
+    [TVarcharColumn('name', 63, True, 'UTF8', '')]
     property Name: string read FName write FName;
   end;
 

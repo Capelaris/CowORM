@@ -16,17 +16,7 @@ uses
   CowORM.Core.QueryResult in '..\..\src\CowORM.Core.QueryResult.pas',
   CowORM.Core.Tables in '..\..\src\CowORM.Core.Tables.pas',
   CowORM.Helpers in '..\..\src\CowORM.Helpers.pas',
-  CowORM in '..\..\src\CowORM.pas',
-  Customer in 'models\Customer.pas',
-  Invoice in 'models\Invoice.pas',
-  InvoiceLine in 'models\InvoiceLine.pas',
-  Migrations in 'models\Migrations.pas',
-  PasswordResets in 'models\PasswordResets.pas',
-  Product in 'models\Product.pas',
-  Users in 'models\Users.pas',
-  Webrole in 'models\Webrole.pas',
-  Webuser in 'models\Webuser.pas',
-  Webuserinrole in 'models\Webuserinrole.pas';
+  CowORM in '..\..\src\CowORM.pas';
 
 {$R *.res}
 

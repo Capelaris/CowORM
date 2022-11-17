@@ -15,9 +15,9 @@ type
   public
     [TIntegerColumn('webuser_id', True)]
     property WebuserId: Int32 read FWebuserId write FWebuserId;
-    [TVarcharColumn('email', 63, True, 'UTF8', 'UTF8')]
+    [TVarcharColumn('email', 63, True, 'UTF8', '')]
     property Email: string read FEmail write FEmail;
-    [TVarcharColumn('passwd', 63, True, 'UTF8', 'UTF8')]
+    [TVarcharColumn('passwd', 63, True, 'UTF8', '')]
     property Passwd: string read FPasswd write FPasswd;
   end;
 
