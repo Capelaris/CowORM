@@ -2,8 +2,8 @@ object FMainForm: TFMainForm
   Left = 0
   Top = 0
   Caption = 'FMainForm'
-  ClientHeight = 299
-  ClientWidth = 635
+  ClientHeight = 382
+  ClientWidth = 620
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,20 +16,22 @@ object FMainForm: TFMainForm
   object btnSelectQuery: TButton
     AlignWithMargins = True
     Left = 3
-    Top = 264
-    Width = 629
+    Top = 347
+    Width = 614
     Height = 32
     Align = alBottom
     Caption = 'btnSelectQuery'
     TabOrder = 0
     OnClick = btnSelectQueryClick
+    ExplicitTop = 264
+    ExplicitWidth = 629
   end
   object mmoQuery: TMemo
     AlignWithMargins = True
     Left = 3
     Top = 3
-    Width = 629
-    Height = 255
+    Width = 614
+    Height = 338
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -38,5 +40,7 @@ object FMainForm: TFMainForm
     Font.Style = []
     ParentFont = False
     TabOrder = 1
+    ExplicitWidth = 629
+    ExplicitHeight = 255
   end
 end

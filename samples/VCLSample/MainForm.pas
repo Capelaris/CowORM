@@ -29,8 +29,9 @@ var
   qry: TSelectQuery;
   Arr: TArray<TCustomer>;
 begin
-  Arr := TCustomer.FindAll<TCustomer>;
-  //mmoQuery.Lines.Text := Arr[0].Name;
+  //Arr := TCustomer.FindAll<TCustomer>;
+  //mmoQuery.Lines.Text := Arr[5].SerializeField.ToJSON;
+  mmoQuery.Lines.Text := TCustomer.Find<TCustomer>(2).SerializeField.ToJSON;
   {qry := TSelectQuery.Create('tabela1')
       .Where('a.col1 = b.col1')
       .Where('a.col2', 'b.col2')

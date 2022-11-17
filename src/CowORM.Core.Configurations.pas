@@ -14,16 +14,18 @@ type
     iPort    : Integer;
     sUserName: string;
     sPassword: string;
+    bLazy    : Boolean;
   public
     { Public Declarations }
     constructor Create(pType: TConnectionType; pHostname: string; pPort: Integer;
-      pUsername, pPassword, pDatabase: string);
+      pUsername, pPassword, pDatabase: string; pLazy: Boolean = False);
     property ConnType: TConnectionType read tType;
     property Database: string  read sDatabase;
     property Hostname: string  read sHostname;
     property Port    : Integer read iPort;
     property UserName: string  read sUserName;
     property Password: string  read sPassword;
+    property Lazy    : Boolean read bLazy;
   end;
 
 implementation
@@ -31,7 +33,7 @@ implementation
 { TConfigs }
 
 constructor TConfigs.Create(pType: TConnectionType; pHostname: string;
-  pPort: Integer; pUsername, pPassword, pDatabase: string);
+  pPort: Integer; pUsername, pPassword, pDatabase: string; pLazy: Boolean);
 begin
   inherited Create;
   with Self do
@@ -42,6 +44,7 @@ begin
     sUserName := pUsername;
     sPassword := pPassword;
     sDatabase := pDatabase;
+    bLazy     := pLazy;
   end;
 end;
 

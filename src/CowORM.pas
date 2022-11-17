@@ -25,6 +25,7 @@ type
   TConnectionType = CowORM.Commons.TConnectionType;
 
   //Columns
+  TPrimaryKey            = CowORM.Core.Columns.TPrimaryKey;
   TColumn                = CowORM.Core.Columns.TColumn;
   TSmallIntColumn        = CowORM.Core.Columns.TSmallIntColumn;
   TIntegerColumn         = CowORM.Core.Columns.TIntegerColumn;

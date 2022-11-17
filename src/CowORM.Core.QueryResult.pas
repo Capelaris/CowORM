@@ -4,35 +4,38 @@ interface
 
 uses
   CowORM.Commons, CowORM.Helpers, CowORM.Core.QueryParam, Rtti, SysUtils,
-  FireDAC.Comp.Client;
+  FireDAC.Comp.Client, FireDAC.Stan.Param;
 
 type
   TQueryResult = class
   private
     oFDQuery: TFDQuery;
+    bLazy   : Boolean;
   public
     constructor Create; overload;
-    constructor Create(Conn: TFDConnection); overload;
+    constructor Create(pConn: TFDConnection; pLazy: Boolean = False); overload;
 
     function Select(pSQL: string; pParams: TArray<TQueryParam>): TQueryResult; overload;
     function Select(pSQL: string): TQueryResult; overload;
 
     property Query: TFDQuery read oFDQuery;
+    property Lazy : Boolean  read bLazy;
   end;
 
 implementation
 
 { TQueryResult }
 
-constructor TQueryResult.Create(Conn: TFDConnection);
+constructor TQueryResult.Create(pConn: TFDConnection; pLazy: Boolean);
 begin
   Self.Create;
-  Self.oFDQuery.Connection := Conn;
+  Self.oFDQuery.Connection := pConn;
+  Self.bLazy               := pLazy;
 end;
 
 function TQueryResult.Select(pSQL: string): TQueryResult;
 begin
-  Select(pSQL, []);
+  Result := Select(pSQL, []);
 end;
 
 function TQueryResult.Select(pSQL: string;
@@ -40,6 +43,7 @@ function TQueryResult.Select(pSQL: string;
 var
   Param: TQueryParam;
 begin
+  Result := Self;
   with Self.oFDQuery do
   begin
     SQL.Text := pSQL;

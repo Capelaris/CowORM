@@ -8,7 +8,7 @@ uses
   //Default FireDAC units
   FireDAC.Comp.Client, FireDAC.Comp.UI, FireDAC.Stan.Def, FireDAC.DApt,
   FireDAC.Stan.Async, FireDAC.Phys, FireDAC.UI.Intf, FireDAC.VCLUI.Wait,
-  FireDAC.Stan.Intf,
+  FireDAC.Stan.Intf, FireDAC.Stan.Param,
   //FireBird
   FireDAC.Phys.FB, FireDAC.Phys.FBDef,
   //MySQL
@@ -22,6 +22,7 @@ type
     oFDTransUpdate: TFDTransaction;
     oFDWaitCursor : TFDGUIxWaitCursor;
     oFDQuery      : TFDQuery;
+    bLazyResults  : Boolean;
   public
     constructor Create; overload;
     constructor Create(Configs: TConfigs); overload;
@@ -30,6 +31,8 @@ type
     procedure ExecuteSQL(pSQL: string; pParams: TArray<TQueryParam>); overload;
     procedure ExecuteSQL(pSQL: string); overload;
     procedure CommitTransactions;
+
+    property Lazy: Boolean read bLazyResults write bLazyResults;
   end;
 
 implementation
@@ -58,9 +61,10 @@ constructor TConnection.Create(Configs: TConfigs);
 begin
   Create;
 
+  Self.bLazyResults := Configs.Lazy;
   with Self.oFDCon do
   begin
-    DriverName  := GetDriverName(Configs.ConnType);
+    DriverName := GetDriverName(Configs.ConnType);
     with TFDPhysMySQLConnectionDefParams(Params) do
     begin
       DriverID := GetDriverID(Configs.ConnType);
@@ -70,8 +74,9 @@ begin
       UserName := Configs.UserName;
       Password := Configs.Password;
     end;
+
     try
-      //Connected := True;
+      Connected := True;
     except
       on E: Exception do
         raise Exception.Create('Error in Database Connection: ' + E.Message);
@@ -119,14 +124,14 @@ end;
 
 function TConnection.Select(pSQL: string): TQueryResult;
 begin
-  Result := TQueryResult.Create(Self.oFDCon);
+  Result := TQueryResult.Create(Self.oFDCon, Self.bLazyResults);
   Result.Select(pSQL);
 end;
 
 function TConnection.Select(pSQL: string;
   pParams: TArray<TQueryParam>): TQueryResult;
 begin
-  Result := TQueryResult.Create(Self.oFDCon);
+  Result := TQueryResult.Create(Self.oFDCon, Self.bLazyResults);
   Result.Select(pSQL, pParams);
 end;
 

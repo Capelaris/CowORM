@@ -3,9 +3,20 @@ unit CowORM.Core.Columns;
 interface
 
 uses
-  CowORM.Commons, Rtti, Variants, Data.DB, SysUtils;
+  CowORM.Commons, CowORM.Helpers, Rtti, Variants, Data.DB, SysUtils;
 
 type
+  TPrimaryKey = class(TCustomAttribute)
+  private
+    aKeys: TArray<string>;
+  public
+    constructor Create(pKeys: TArray<string>); overload;
+    constructor Create(pKey: string); overload;
+
+    function IsKey(pColumnName: string): Boolean;
+    property Keys: TArray<string> read aKeys write aKeys;
+  end;
+
   TColumn = class(TCustomAttribute)
   private
     sName      : string;
@@ -22,7 +33,7 @@ type
       pNotNull: Boolean; pCharset, pCollate: string; pDefaultVal: TValue;
       pTableLabel: string = '');
 
-    function GetValue(pField: TField): TValue; virtual; abstract;
+    function GetValue(pField: TField): TValue; virtual;
     class function Copy(pObject: TColumn): TColumn;
 
     property Name      : string      read sName       write sName;
@@ -264,6 +275,17 @@ begin
     sCharset    := pCharset;
     sCollate    := pCollate;
     oDefaultVal := pDefaultVal;
+  end;
+end;
+
+function TColumn.GetValue(pField: TField): TValue;
+begin
+  Result := TValue.Empty;
+  try
+    Result := TValue.FromVariant(pField.AsVariant);
+  except
+    on E: Exception do
+      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -531,6 +553,32 @@ begin
     on E: Exception do
       raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
+end;
+
+{ TPrimaryKey }
+
+constructor TPrimaryKey.Create(pKeys: TArray<string>);
+begin
+  inherited Create;
+  Self.aKeys := pKeys;
+end;
+
+constructor TPrimaryKey.Create(pKey: string);
+begin
+  inherited Create();
+  Self.aKeys := [pKey];
+end;
+
+function TPrimaryKey.IsKey(pColumnName: string): Boolean;
+var
+  ArrVal: string;
+begin
+  for ArrVal in Self.aKeys do
+  begin
+    if pColumnName.ToLower = ArrVal.ToLower then
+      Exit(True);
+  end;
+  Exit(False);
 end;
 
 end.

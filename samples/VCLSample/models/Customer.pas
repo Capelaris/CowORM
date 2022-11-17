@@ -7,7 +7,7 @@ uses
 
 type
   [TTable('customer')]
-  //[TPrimaryKey('customer_id', 11, True)]
+  [TPrimaryKey('customer_id')]
   TCustomer = class(TORMObject)
   private
     FId     : Integer;
