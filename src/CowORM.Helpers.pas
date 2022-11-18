@@ -3,12 +3,14 @@ unit CowORM.Helpers;
 interface
 
 uses
-  System.StrUtils, System.Math, CowORM.Commons;
+  System.StrUtils, System.Generics.Defaults, System.Math, CowORM.Commons;
 
 type
   TArrayUtils<T> = class
     class procedure Append(var Arr: TArray<T>; Value: T); overload;
     class procedure Append(var Arr: TArray<T>; Values: TArray<T>); overload;
+    class function Contains(const anArray: array of T; const x: T) : Boolean;
+    class function Count(const anArray: array of T; const x: T) : Integer;
   end;
 
 function GetWords(Text: string): TArray<string>;
@@ -108,6 +110,37 @@ var
 begin
   for Obj in Values do
     TArrayUtils<T>.Append(Arr, Obj);
+end;
+
+class function TArrayUtils<T>.Contains(const anArray: array of T;
+  const x: T): Boolean;
+var
+  y : T;
+  lComparer: IEqualityComparer<T>;
+begin
+  lComparer := TEqualityComparer<T>.Default;
+  for y in anArray do
+  begin
+    if lComparer.Equals(x, y) then
+      Exit(True);
+  end;
+  Exit(False);
+end;
+
+
+class function TArrayUtils<T>.Count(const anArray: array of T;
+  const x: T): Integer;
+var
+  y : T;
+  lComparer: IEqualityComparer<T>;
+begin
+  Result := 0;
+  lComparer := TEqualityComparer<T>.Default;
+  for y in anArray do
+  begin
+    if lComparer.Equals(x, y) then
+      Result := Result + 1;
+  end;
 end;
 
 end.

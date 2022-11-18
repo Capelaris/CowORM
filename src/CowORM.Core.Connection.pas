@@ -32,7 +32,8 @@ type
     procedure ExecuteSQL(pSQL: string); overload;
     procedure CommitTransactions;
 
-    property Lazy: Boolean read bLazyResults write bLazyResults;
+    property Lazy: Boolean       read bLazyResults write bLazyResults;
+    property Conn: TFDConnection read oFDCon       write oFDCon;
   end;
 
 implementation
@@ -51,7 +52,7 @@ begin
       on E: Exception do
       begin
         Rollback;
-        raise Exception.Create('Error in ConnectionCommit: ' + E.Message);
+        raise Exception.Create('ConnectionCommit->' + E.Message);
       end;
     end;
   end;
@@ -79,7 +80,7 @@ begin
       Connected := True;
     except
       on E: Exception do
-        raise Exception.Create('Error in Database Connection: ' + E.Message);
+        raise Exception.Create('Database Connection->' + E.Message);
     end;
   end;
 end;
@@ -99,7 +100,7 @@ begin
       except
         on E: Exception do
         begin
-          raise Exception.Create('Error in ExecSQLParam: ' + E.Message);
+          raise Exception.Create('ExecSQLParam->' + E.Message);
         end;
       end;
     end;  
@@ -109,7 +110,7 @@ begin
     except
       on E: Exception do
       begin
-        raise Exception.Create('Error in ExecSQL: ' + E.Message);
+        raise Exception.Create('ExecSQL->' + E.Message);
       end;
     end;
 

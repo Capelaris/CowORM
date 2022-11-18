@@ -1,6 +1,7 @@
 object fMainForm: TfMainForm
   Left = 0
   Top = 0
+  BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Main Form'
   ClientHeight = 210

@@ -220,7 +220,7 @@ type
   TBlobBinaryColumn = class(TColumn)
   public
     constructor Create(pName: string; pSize: Integer; pNotNull: Boolean;
-      pDefaultVal: TValue);
+      pDefaultVal: string = '');
     function GetValue(pField: TField): TValue; override;
 
     property Name;
@@ -285,7 +285,7 @@ begin
     Result := TValue.FromVariant(pField.AsVariant);
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + ')->' + E.Message);
   end;
 end;
 
@@ -304,7 +304,7 @@ begin
     Result := pField.AsInteger;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -323,7 +323,7 @@ begin
     Result := pField.AsInteger;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -342,7 +342,7 @@ begin
     Result := pField.AsLargeInt;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -361,7 +361,7 @@ begin
     Result := pField.AsFloat;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -380,7 +380,7 @@ begin
     Result := pField.AsFloat;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -399,7 +399,7 @@ begin
     Result := pField.AsFloat;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -418,7 +418,7 @@ begin
     Result := pField.AsFloat;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -437,7 +437,7 @@ begin
     Result := pField.AsDateTime;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -456,7 +456,7 @@ begin
     Result := pField.AsDateTime;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -475,7 +475,7 @@ begin
     Result := pField.AsDateTime;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -494,7 +494,7 @@ begin
     Result := pField.AsString;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -513,14 +513,14 @@ begin
     Result := pField.AsString;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
 { TBlobBinaryColumn }
 
 constructor TBlobBinaryColumn.Create(pName: string; pSize: Integer;
-  pNotNull: Boolean; pDefaultVal: TValue);
+  pNotNull: Boolean; pDefaultVal: string);
 begin
   inherited Create(pName, ctVarchar, pSize, -1, pNotNull, '', '', pDefaultVal);
 end;
@@ -532,7 +532,7 @@ begin
     Result := pField.AsString;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + '): ' + E.Message);
   end;
 end;
 
@@ -551,7 +551,7 @@ begin
     Result := pField.AsString;
   except
     on E: Exception do
-      raise Exception.Create('Error in GetValue(' + pField.FieldName + '): ' + E.Message);
+      raise Exception.Create('GetValue(' + pField.FieldName + ')->' + E.Message);
   end;
 end;
 

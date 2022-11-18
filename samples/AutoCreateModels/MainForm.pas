@@ -2,11 +2,14 @@ unit MainForm;
 
 interface
 
+{$WARN UNIT_PLATFORM OFF}
+{$WARN SYMBOL_PLATFORM OFF}
+
 uses
   Winapi.Windows, Winapi.Messages, SysUtils, Variants, Classes, Graphics,
-  Controls, Forms, Dialogs, StdCtrls, IOUtils, FileCtrl, CowORM,
+  Controls, Forms, Dialogs, StdCtrls, IOUtils, CowORM,
   CowORM.Helpers, FireDAC.Comp.Client, StrUtils, Types, Diagnostics, TimeSpan,
-  Rtti, ComCtrls;
+  Rtti, ComCtrls, Invoice;
 
 type
   TfMainForm = class(TForm)
@@ -55,13 +58,16 @@ var
   Conn   : TConnection;
   Select : TSelectQuery;
   Tables : TQueryResult;
+  TablesC: TQueryResult;
   Columns: TQueryResult;
   PK, FK : TArray<string>;
+  FKCols : TArray<string>;
   Content: TStringList;
   ClassN : string;
-  FKUses : string;
   PKAttr : string;
   FileN  : string;
+  FKName : string;
+  FKUses : string;
   Count  : Integer;
   CountC : Integer;
   SW     : TStopwatch;
@@ -75,21 +81,26 @@ begin
 
   SysUtils.ForceDirectories(edtModels.Text);
 
-  for FileN in TDirectory.GetFiles(edtModels.Text, '.*') do 
+  for FileN in TDirectory.GetFiles(edtModels.Text) do
     TFile.Delete(FileN);
 
-  Select := TSelectQuery.Create('RDB$RELATIONS');
-  Tables := Conn.Select(
+  Select  := TSelectQuery.Create('RDB$RELATIONS');
+  Tables  := Conn.Select(
       Select
           .Where('COALESCE(RDB$SYSTEM_FLAG, 0)', '0')
           .Where('RDB$RELATION_TYPE', '0')
           .GetSQL(['RDB$RELATION_NAME']));
-  Count  := 0;
-  CountC := 0;
+  TablesC := Conn.Select(
+      'select count(RDB$RELATION_NAME)           ' + #13#10 +
+      'from RDB$RELATIONS                        ' + #13#10 +
+      'where COALESCE(RDB$SYSTEM_FLAG, 0) = 0 and' + #13#10 +
+      '      RDB$RELATION_TYPE = 0               ');
+  Count   := 0;
+  CountC  := 0;
   pbProgress.Min := 0;
-  pbProgress.Max := Tables.Query.RecordCount;
+  pbProgress.Max := TablesC.Query.FieldByName('count').AsInteger;
   pbProgress.Position := Count;
-  lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(Tables.Query.RecordCount);
+  lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(TablesC.Query.FieldByName('count').AsInteger);
   lblColunas.Caption  := 'Colunas: ' + IntTostr(CountC);
   SW        := TStopwatch.StartNew;
 
@@ -181,7 +192,8 @@ begin
         '        (case when sg.rdb$field_name is not null then ''True''                   ' + #13#10 +
         '        else ''False''                                                           ' + #13#10 +
         '        end) as PRIMARY_KEY,                                                     ' + #13#10 +
-        '        fk.PKTABLE_NAME                                                          ' + #13#10 +
+        '        fk.PKTABLE_NAME,                                                         ' + #13#10 +
+        '        fk.FK_NAME                                                               ' + #13#10 +
         'FROM RDB$RELATION_FIELDS RF                                                      ' + #13#10 +
         'JOIN RDB$FIELDS F ON                                                             ' + #13#10 +
         'F.RDB$FIELD_NAME = RF.RDB$FIELD_SOURCE                                           ' + #13#10 +
@@ -201,14 +213,17 @@ begin
         'fk.FKCOLUMN_NAME = RF.RDB$FIELD_NAME                                             ' + #13#10 +
         'WHERE (UPPER(RF.RDB$RELATION_NAME) = upper(:TABLE_NAME)) AND                     ' + #13#10 +
         '      (COALESCE(RF.RDB$SYSTEM_FLAG, 0) = 0)                                      ' + #13#10 +
-        'ORDER BY RF.RDB$FIELD_POSITION                                                   ',
+        'ORDER BY fk.FK_NAME, RF.RDB$FIELD_POSITION                                       ',
         [TQueryParam.Create('table_name', TValue.From(Tables.Query.FieldByName('rdb$relation_name').AsString))]);
 
-    PK := [];
-    FK := [];
+    PK     := [];
+    FK     := [];
+    FKCols := [];
+    FKName := '';
     with Columns.Query do
     begin
       First;
+
       while not Eof do
       begin
         if FieldByName('PRIMARY_KEY').AsString = 'True' then
@@ -239,49 +254,126 @@ begin
       First;
       while not Eof do
       begin
-        if FieldByName('PKTABLE_NAME').AsString <> '' then
-          Content.Add('    F' + FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ': T' +
-              FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ';')
+        if FieldByName('FK_NAME').AsString <> '' then
+        begin
+          if not TArrayUtils<string>.Contains(FKCols, FieldByName('FK_NAME').AsString) then
+          begin
+            TArrayUtils<string>.Append(FKCols, FieldByName('FK_NAME').AsString);
+            Content.Add('    F' + FormatTableName(FieldByName('FK_NAME').AsString) + ': T' +
+                FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ';');
+          end;
+        end
         else
           Content.Add('    F' + FormatTableName(FieldByName('FIELD_NAME').AsString) + ': ' +
               GetFieldType(FieldByName('FIELD_TYPE').AsString) + ';');
 
         Next;
       end;
-      
+
+      FKCols := [];
+      First;
+      while not Eof do
+      begin
+        if FieldByName('FK_NAME').AsString <> '' then
+        begin
+          if not TArrayUtils<string>.Contains(FKCols, FieldByName('FK_NAME').AsString) then
+          begin
+            TArrayUtils<string>.Append(FKCols, FieldByName('FK_NAME').AsString);
+            Content.Add('    procedure Write' + FormatTableName(FieldByName('FK_NAME').AsString) + '(Value: T' +
+                FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ');');
+            Content.Add('    function Read' + FormatTableName(FieldByName('FK_NAME').AsString) + ': T' +
+                FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ';');
+          end;
+        end
+        else
+        begin
+          Content.Add('    procedure Write' + FormatTableName(FieldByName('FIELD_NAME').AsString) + '(Value: ' +
+              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ');');
+          Content.Add('    function Read' + FormatTableName(FieldByName('FIELD_NAME').AsString) + ': ' +
+              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ';');
+        end;
+
+        Next;
+      end;
+
       Content.Add('  public');
 
       First;
       while not Eof do
       begin
-        Content.Add('    [' + GetColumnClass(Columns.Query) + ']');
-        if FieldByName('PKTABLE_NAME').AsString <> '' then
-          Content.Add('    property ' + FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ': T' +
-              FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ' read F' + 
-              FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ' write F' +
-              FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ';')
+        if FieldByName('FK_NAME').AsString <> '' then
+        begin
+          FKName := FieldByName('FK_NAME').AsString;
+          while (FieldByName('FK_NAME').AsString = FKName) and (not Eof) do
+          begin
+            Content.Add('    [' + GetColumnClass(Columns.Query) + ']');
+            Next;
+          end;
+          Content.Add('    property ' + FormatTableName(FieldByName('FK_NAME').AsString) + ': T' +
+              FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ' read Read' +
+              FormatTableName(FieldByName('FK_NAME').AsString) + ' write Write' +
+              FormatTableName(FieldByName('FK_NAME').AsString) + ';');
+        end
         else
+        begin
+          Content.Add('    [' + GetColumnClass(Columns.Query) + ']');
           Content.Add('    property ' + FormatTableName(FieldByName('FIELD_NAME').AsString) + ': ' +
-              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ' read F' +
-              FormatTableName(FieldByName('FIELD_NAME').AsString) + ' write F' +
+              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ' read Read' +
+              FormatTableName(FieldByName('FIELD_NAME').AsString) + ' write Write' +
               FormatTableName(FieldByName('FIELD_NAME').AsString) + ';');
+        end;
 
         CountC := CountC + 1;
         lblColunas.Caption  := 'Colunas: ' + IntTostr(CountC);
 
         Next;
       end;
-      
+
       Content.Add('  end;' + #13#10);
-      Content.Add('implementation' + #13#10 + 'end.');
+      Content.Add('implementation' + #13#10);
+
+      FKCols := [];
+      First;
+      while not Eof do
+      begin
+        if FieldByName('FK_NAME').AsString <> '' then
+        begin
+          if not TArrayUtils<string>.Contains(FKCols, FieldByName('FK_NAME').AsString) then
+          begin
+            TArrayUtils<string>.Append(FKCols, FieldByName('FK_NAME').AsString);
+            Content.Add('procedure T' + ClassN + '.Write' + FormatTableName(FieldByName('FK_NAME').AsString) + '(Value: T' +
+                FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ');');
+            Content.Add('begin' + #13#10 + '  inherited CheckLazy;' + #13#10 + '  Self.F' +
+                FormatTableName(FieldByName('FK_NAME').AsString) + ' := Value;' + #13#10 + 'end;' + #13#10);
+            Content.Add('function T' + ClassN + '.Read' + FormatTableName(FieldByName('FK_NAME').AsString) + ': T' +
+                FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ';');
+            Content.Add('begin' + #13#10 + '  inherited CheckLazy;' + #13#10 + '  Result := Self.F' +
+                FormatTableName(FieldByName('FK_NAME').AsString) + ';' + #13#10 + 'end;' + #13#10);
+          end;
+        end
+        else
+        begin
+          Content.Add('procedure T' + ClassN + '.Write' + FormatTableName(FieldByName('FIELD_NAME').AsString) + '(Value: ' +
+              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ');');
+          Content.Add('begin' + #13#10 + '  inherited CheckLazy;' + #13#10 + '  Self.F' +
+              FormatTableName(FieldByName('FIELD_NAME').AsString) + ' := Value;' + #13#10 + 'end;' + #13#10);
+          Content.Add('function T' + ClassN + '.Read' + FormatTableName(FieldByName('FIELD_NAME').AsString) + ': ' +
+              GetFieldType(FieldByName('FIELD_TYPE').AsString) + ';');
+          Content.Add('begin' + #13#10 + '  inherited CheckLazy;' + #13#10 + '  Result := Self.F' +
+              FormatTableName(FieldByName('FIELD_NAME').AsString) + ';' + #13#10 + 'end;' + #13#10);
+        end;
+
+        Next;
+      end;
+
+      Content.Add(#13#10 + 'end.');
 
       Content.SaveToFile(edtModels.Text + '/' + ClassN + '.pas');
     end;
 
     Count := Count + 1;
-    pbProgress.Max := Tables.Query.RecordCount;
     pbProgress.Position := Count;
-    lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(Tables.Query.RecordCount);
+    lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(TablesC.Query.FieldByName('count').AsInteger);
     Application.ProcessMessages;
 
     Tables.Query.Next;
@@ -306,11 +398,14 @@ end;
 
 procedure TfMainForm.btnSearchFolderClick(Sender: TObject);
 var
-  Dir: string;
+  Dialog: TFileOpenDialog;
 begin
-  Dir := edtModels.Text;
-  if SelectDirectory(Dir, [sdAllowCreate, sdPerformCreate, sdPrompt], 1000) then
-    edtModels.Text := Dir;
+  Dialog := TFileOpenDialog.Create(Self);
+  Dialog.Options := [fdoPickFolders];
+  if Dialog.Execute then
+  begin
+    edtModels.Text := Dialog.FileName;
+  end;
 end;
 
 function TfMainForm.FormatTableName(pTableName: string): string;
@@ -326,6 +421,8 @@ procedure TfMainForm.FormCreate(Sender: TObject);
 begin
   edtDatabase.Text := TPath.GetFullPath('../../../../database/examples.fdb');
   edtModels.Text   := TPath.GetFullPath('../../models');
+
+  ShowMessage(TInvoice.FindAll<TInvoice>[0].Serialize.ToJSON);
 end;
 
 function TfMainForm.GetColumnClass(pQuery: TFDQuery): string;
@@ -367,28 +464,28 @@ begin
 
     Props := QuotedStr(FieldByName('field_name').AsString.ToLower);
 
-    if MatchStr(FieldByName('field_type').AsString, ['NUMERIC', 'DECIMAL', 
+    if MatchStr(Trim(FieldByName('field_type').AsString), ['NUMERIC', 'DECIMAL',
         'FLOAT', 'DOUBLE', 'VARCHAR', 'BLOB SUB_TYPE 1', 'BLOB SUB_TYPE 0']) then
     begin
       Props := Props + ', ' + IntToStr(FieldByName('field_size').AsInteger);
     end;
 
-    if MatchStr(FieldByName('field_type').AsString, ['NUMERIC', 'DECIMAL', 
+    if MatchStr(Trim(FieldByName('field_type').AsString), ['NUMERIC', 'DECIMAL',
         'FLOAT']) then
     begin  
       Props := Props + ', ' + IntToStr(FieldByName('field_precision').AsInteger);
     end;
       
-    if FieldByName('field_null').AsString <> 'NOT NULL' then
+    if Trim(FieldByName('field_null').AsString) <> 'NOT NULL' then
       Props := Props + ', False'
     else
       Props := Props + ', True';
 
-    if MatchStr(FieldByName('field_type').AsString, ['CHAR', 'VARCHAR', 
+    if MatchStr(Trim(FieldByName('field_type').AsString), ['CHAR', 'VARCHAR',
         'BLOB SUB_TYPE 1']) then
     begin
-      Props := Props + ', ' + QuotedStr(FieldByName('field_charset').AsString);
-      Props := Props + ', ' + QuotedStr(FieldByName('field_collation').AsString);
+      Props := Props + ', ' + QuotedStr(Trim(FieldByName('field_charset').AsString));
+      Props := Props + ', ' + QuotedStr(Trim(FieldByName('field_collation').AsString));
     end;
 
     Result := ClassN + Props + ')';
@@ -405,25 +502,25 @@ begin
   else if Trim(pType) = 'DECIMAL' then
     Result := 'Double'
   else if Trim(pType) = 'INTEGER' then
-    Result := 'Int32'   
+    Result := 'Int32'
   else if Trim(pType) = 'BIGINT' then
-    Result := 'Int64'   
+    Result := 'Int64'
   else if Trim(pType) = 'FLOAT' then
-    Result := 'Double'   
+    Result := 'Double'
   else if Trim(pType) = 'DOUBLE' then
-    Result := 'Double'   
+    Result := 'Double'
   else if Trim(pType) = 'DATE' then
-    Result := 'TDateTime'   
+    Result := 'TDateTime'
   else if Trim(pType) = 'TIME' then
-    Result := 'TDateTime'   
+    Result := 'TDateTime'
   else if Trim(pType) = 'TIMESTAMP' then
-    Result := 'TDateTime'   
+    Result := 'TDateTime'
   else if Trim(pType) = 'CHAR' then
     Result := 'string'
   else if Trim(pType) = 'VARCHAR' then
-    Result := 'string'   
+    Result := 'string'
   else if Trim(pType) = 'BLOB SUB_TYPE 1' then
-    Result := 'string'    
+    Result := 'string'
   else if Trim(pType) = 'BLOB SUB_TYPE 0' then
     Result := 'string';
 end;

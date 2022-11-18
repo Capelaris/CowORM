@@ -17,22 +17,29 @@ type
     constructor Create(pName: string; pValue: TValue); overload;
   end;
 
-  TORMObject = class(TObject)
+  TORMObject = class(TInterfacedObject)
   private
     { Private Declarations }
     aOldValues: TArray<TOldValue>;
+    oLastConn : TConnection;
     {function ChangedColumns: TColumns; }
 
-    class function GetColumns<T: class>: TArray<TColumn>;
-    class function GetTable<T: class>: TTable;
-    class function PrepareSelect<T: class>: TSelectQuery;
-    class function PopulateFromResult<T: class>(pResult: TQueryResult): TArray<T>;
+    class function GetColumns<T: class>: TArray<TColumn>; overload;
+    class function GetTable<T: class>: TTable; overload;
+    class function PrepareSelect<T: class>: TSelectQuery; overload;
+    class function PopulateFromResult<T: class>(pResult: TQueryResult): TArray<T>; overload;
+    function GetColumns: TArray<TColumn>; overload;
+    function GetTable: TTable; overload;
+    function GetPrimaryKeyValue: Integer;
+    function PrepareSelect: TSelectQuery; overload;
+    procedure PopulateFromResult(pResult: TQueryResult); overload;
     procedure AddOldValue(pName: string; pValue: TValue);
   protected
     isInserted: Boolean;
     isLoaded  : Boolean;
     //procedure AddOldValue(Name: string; Value: TValue);
     //function IsDiff(Col: TColumn; Value: TValue): Boolean;
+    procedure CheckLazy;
   public
     { Public Declarations }
     // Create Function
@@ -53,7 +60,7 @@ type
     //procedure Delete;
 
     constructor Create; overload;
-    constructor UnlazyCreate(Id: Integer);
+    constructor UnlazyCreate(Id: Integer; Lazy: Boolean = False);
   end;
 
 implementation
@@ -63,6 +70,50 @@ implementation
 procedure TORMObject.AddOldValue(pName: string; pValue: TValue);
 begin
   TArrayUtils<TOldValue>.Append(Self.aOldValues, TOldValue.Create(pName, pValue));
+end;
+
+procedure TORMObject.CheckLazy;
+var
+  Ctx        : TRttiContext;
+  Tp         : TRttiType;
+  Attr       : TCustomAttribute;
+  PK         : TPrimaryKey;
+  Key        : string;
+  Select     : TSelectQuery;
+  QueryResult: TQueryResult;
+  Params     : TArray<TQueryParam>;
+begin
+  if not Self.isLoaded then
+  begin
+    Self.isLoaded := True;
+    Ctx := TRttiContext.Create;
+    try
+      Tp := Ctx.GetType(Self.ClassType);
+
+      for Attr in Tp.GetAttributes do
+        if (Attr is TPrimaryKey) then
+          PK := (Attr as TPrimaryKey);
+
+      if PK = nil then
+        raise Exception.Create('Error to get PrimaryKey on Find with ID');
+
+      Select := Self.PrepareSelect;
+      for Key in PK.Keys do
+        Select.Where(Key, ':id');
+
+      TArrayUtils<TQueryParam>.Append(Params, TQueryParam.Create('id', TValue.From(Self.GetPrimaryKeyValue)));
+
+      QueryResult := Self.oLastConn.Select(Select.GetSQL, Params);
+
+      Self.PopulateFromResult(QueryResult);
+    except
+      on E: Exception do
+      begin
+        Self.isLoaded := False;
+        raise Exception.Create('CheckLazy->' + E.Message);
+      end;
+    end;
+  end;
 end;
 
 constructor TORMObject.Create;
@@ -80,6 +131,28 @@ end;
 class function TORMObject.FindAll<T>(Configs: TConfigs): TArray<T>;
 begin
   Result := TORMObject.FindAll<T>(TConnection.Create(Configs));
+end;
+
+function TORMObject.GetColumns: TArray<TColumn>;
+var
+  Ctx : TRttiContext;
+  Tp  : TRttiType;
+  Attr: TCustomAttribute;
+  Prop: TRttiProperty;
+begin
+  Result := TArray<TColumn>.Create();
+
+  Ctx := TRttiContext.Create;
+  try
+    Tp := Ctx.GetType(Self.ClassType);
+
+    for Prop in Tp.GetProperties do
+      for Attr in Prop.GetAttributes do
+        if Attr is TColumn then
+          TArrayUtils<TColumn>.Append(Result, TColumn.Copy(Attr as TColumn));
+  finally
+    Ctx.Free;
+  end;
 end;
 
 class function TORMObject.GetColumns<T>: TArray<TColumn>;
@@ -104,6 +177,54 @@ begin
   end;
 end;
 
+function TORMObject.GetPrimaryKeyValue: Integer;
+var
+  Ctx : TRttiContext;
+  Tp  : TRttiType;
+  Attr: TCustomAttribute;
+  PK  : TPrimaryKey;
+  Prop: TRttiProperty;
+begin
+  Result := -1;
+
+  Ctx := TRttiContext.Create;
+  try
+    Tp := Ctx.GetType(Self.ClassType);
+
+    for Attr in Tp.GetAttributes do
+      if Attr is TPrimaryKey then
+        PK := (Attr as TPrimaryKey);
+
+    for Prop in Tp.GetProperties do
+      for Attr in Prop.GetAttributes do
+        if Attr is TColumn then
+          if PK.IsKey((Attr as TColumn).Name) then
+            Result := Prop.GetValue(Self).AsInteger;
+  finally
+    Ctx.Free;
+  end;
+end;
+
+function TORMObject.GetTable: TTable;
+var
+  Ctx : TRttiContext;
+  Tp  : TRttiType;
+  Attr: TCustomAttribute;
+begin
+  Result := nil;
+
+  Ctx := TRttiContext.Create;
+  try
+    Tp := Ctx.GetType(Self.ClassType);
+
+    for Attr in Tp.GetAttributes do
+      if Attr is TTable then
+        Result := TTable.Copy(Attr as TTable);
+  finally
+    Ctx.Free;
+  end;
+end;
+
 class function TORMObject.GetTable<T>: TTable;
 var
   Ctx : TRttiContext;
@@ -119,6 +240,73 @@ begin
     for Attr in Tp.GetAttributes do
       if Attr is TTable then
         Result := TTable.Copy(Attr as TTable);
+  finally
+    Ctx.Free;
+  end;
+end;
+
+procedure TORMObject.PopulateFromResult(pResult: TQueryResult);
+var
+  Ctx  : TRttiContext;
+  Tp   : TRttiType;
+  Prop : TRttiProperty;
+  PrTP : TRttiInstanceType;
+  Attr : TCustomAttribute;
+  Field: TField;
+  Value: TValue;
+begin
+  Ctx := TRttiContext.Create;
+
+  try
+    Tp := Ctx.GetType(Self.ClassType);
+
+    with pResult.Query do
+    begin
+      First;
+      while not Eof do
+      begin
+        try
+          for Prop in Tp.GetProperties do
+          begin
+            for Attr in Prop.GetAttributes do
+            begin
+              if (Attr is TColumn) then
+              begin
+                Field := FieldByName((Attr as TColumn).Name);
+                if Field <> nil then
+                begin
+                  Value := (Attr as TColumn).GetValue(Field);
+
+                  Self.AddOldValue((Attr as TColumn).Name, Value);
+
+                  PrTP := TRttiInstanceType(Prop.PropertyType);
+
+                  try
+                    if (not PrTP.IsOrdinal) and (PrTP.IsInstance) and
+                        (PrTP.BaseType.ToString = 'TORMObject') then
+                      Value := PrTP.GetMethod('UnlazyCreate').Invoke(
+                          PrTP.AsInstance.MetaclassType, [Field.AsInteger, pResult.Lazy]).AsObject;
+
+                    Self.oLastConn := pResult.Conn;
+                    Prop.SetValue(Self, Value);
+                  except
+                    on E: Exception do
+                      raise Exception.Create('PopulateFromResult->' + E.Message);
+                  end;
+                end;
+              end;
+            end;
+          end;
+
+          Self.isInserted := True;
+        except
+          on E: Exception do
+            raise Exception.Create('PopulateFromResult->' + E.Message);
+        end;
+
+        Next;
+      end;
+    end;
   finally
     Ctx.Free;
   end;
@@ -169,17 +357,14 @@ begin
                   try
                     if (not PrTP.IsOrdinal) and (PrTP.IsInstance) and
                         (PrTP.BaseType.ToString = 'TORMObject') then
-                      if pResult.Lazy then
-                        Value := PrTP.GetMethod('Find').Invoke(
-                            PrTP.AsInstance.MetaclassType, [Field.AsInteger]).AsObject
-                      else
-                        Value := PrTP.GetMethod('UnlazyCreate').Invoke(
-                            PrTP.AsInstance.MetaclassType, [Field.AsInteger]).AsObject;
+                      Value := PrTP.GetMethod('UnlazyCreate').Invoke(
+                          PrTP.AsInstance.MetaclassType, [Field.AsInteger, pResult.Lazy]).AsObject;
 
+                    TORMObject(obj).oLastConn := pResult.Conn;
                     Prop.SetValue(TORMObject(Obj), Value);
                   except
                     on E: Exception do
-                      raise Exception.Create('Error In PopulateFromResult: ' + E.Message);
+                      raise Exception.Create('PopulateFromResult->' + E.Message);
                   end;
                 end;
               end;
@@ -187,11 +372,10 @@ begin
           end;
 
           TORMObject(Obj).isInserted := True;
-          TORMObject(Obj).isLoaded   := True;
           TArrayUtils<T>.Append(Result, Obj);
         except
           on E: Exception do
-            raise Exception.Create('Error in PopulateFromResult: ' + E.Message);
+            raise Exception.Create('PopulateFromResult->' + E.Message);
         end;
 
         Next;
@@ -200,6 +384,12 @@ begin
   finally
     Ctx.Free;
   end;
+end;
+
+function TORMObject.PrepareSelect: TSelectQuery;
+begin
+  Result := TSelectQuery.Create(Self.GetTable);
+  Result.SetColumns(Self.GetColumns);
 end;
 
 class function TORMObject.PrepareSelect<T>: TSelectQuery;
@@ -220,7 +410,9 @@ var
   Prop : TRttiProperty;
   Attr : TCustomAttribute;
   PrTP : TRttiInstanceType;
+  Obj  : TORMObject;
 begin
+  Self.CheckLazy;
   Result := TJSONObject.Create;
   Ctx    := TRttiContext.Create;
 
@@ -236,8 +428,13 @@ begin
           PrTP := TRttiInstanceType(Prop.PropertyType);
           if (not PrTP.IsOrdinal) and (PrTP.IsInstance) and
             (PrTP.BaseType.ToString = 'TORMObject') then
+          begin
+            Obj := TORMObject(Prop.GetValue(Self).AsObject);
+            PrTP.GetMethod('CheckLazy').Invoke(Obj, []);
+            Prop.SetValue(Self, TValue.From(Obj));
             Result.AddPair(TJSONPair.Create((Attr as TColumn).Name,
-                TORMObject(Prop.GetValue(Self).AsObject).SerializeField))
+                Obj.SerializeField));
+          end
           else
             Result.AddPair(TJSONPair.Create((Attr as TColumn).Name, Prop.GetValue(Self).ToString));
         end;
@@ -250,10 +447,11 @@ end;
 
 function TORMObject.SerializeProp: TJSONObject;
 var
-  Ctx  : TRttiContext;
-  Tp   : TRttiType;
-  Prop : TRttiProperty;
-  PrTP : TRttiInstanceType;
+  Ctx : TRttiContext;
+  Tp  : TRttiType;
+  Prop: TRttiProperty;
+  PrTP: TRttiInstanceType;
+  Obj : TORMObject;
 begin
   Result := TJSONObject.Create;
   Ctx    := TRttiContext.Create;
@@ -266,8 +464,13 @@ begin
       PrTP := TRttiInstanceType(Prop.PropertyType);
       if (not PrTP.IsOrdinal) and (PrTP.IsInstance) and
         (PrTP.BaseType.ToString = 'TORMObject') then
+      begin
+        Obj := TORMObject(Prop.GetValue(Self).AsObject);
+        PrTP.GetMethod('CheckLazy').Invoke(Obj, []);
+        Prop.SetValue(Self, TValue.From(Obj));
         Result.AddPair(TJSONPair.Create(Prop.Name,
-            TORMObject(Prop.GetValue(Self).AsObject).SerializeField))
+            Obj.SerializeField));
+      end
       else
         Result.AddPair(TJSONPair.Create(Prop.Name, Prop.GetValue(Self).ToString));
     end;
@@ -276,7 +479,7 @@ begin
   end;
 end;
 
-constructor TORMObject.UnlazyCreate(Id: Integer);
+constructor TORMObject.UnlazyCreate(Id: Integer; Lazy: Boolean);
 var
   Ctx  : TRttiContext;
   Tp   : TRttiType;
@@ -313,6 +516,9 @@ begin
         end;
       end;
     end;
+
+    if not Lazy then
+      Self.CheckLazy;
   finally
     Ctx.Free;
   end;
@@ -363,7 +569,7 @@ begin
     Result := TORMObject.PopulateFromResult<T>(QueryResult)[0];
   except
     on E: Exception do
-      raise Exception.Create('Error in Find: ' + E.Message);
+      raise Exception.Create('Find->' + E.Message);
   end;
 end;
 
@@ -378,7 +584,7 @@ begin
     Result := TORMObject.PopulateFromResult<T>(QueryResult);
   except
     on E: Exception do
-      raise Exception.Create('Error in FindAll: ' + E.Message);
+      raise Exception.Create('FindAll->' + E.Message);
   end;
 end;
 
