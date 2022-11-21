@@ -5,7 +5,7 @@ interface
 uses
   CowORM.Helpers, CowORM.Constants, CowORM.Commons, CowORM.Core.Configurations,
   CowORM.Core.Connection, CowORM.Core.QueryBuilder, CowORM.Core.Columns,
-  CowORM.Core.QueryParam, CowORM.Core.Tables, CowORM.Core.QueryResult,
+  CowORM.Core.QueryParam, CowORM.Core.Tables, CowORM.Core.QueryResult, CowORM.Interfaces,
   Rtti, SysUtils, Dialogs, Data.DB, JSON;
 
 type
@@ -17,26 +17,27 @@ type
     constructor Create(pName: string; pValue: TValue); overload;
   end;
 
-  TORMObject = class(TInterfacedObject)
+  TORMObject = class(TInterfacedObject, ISerializable)
   private
     { Private Declarations }
     aOldValues: TArray<TOldValue>;
-    oLastConn : TConnection;
+    oLastConn : IConnection;
     {function ChangedColumns: TColumns; }
 
     class function GetColumns<T: class>: TArray<TColumn>; overload;
     class function GetTable<T: class>: TTable; overload;
     class function PrepareSelect<T: class>: TSelectQuery; overload;
-    class function PopulateFromResult<T: class>(pResult: TQueryResult): TArray<T>; overload;
+    class function PopulateFromResult<T: class>(pResult: IQueryResult): TArray<T>; overload;
     function GetColumns: TArray<TColumn>; overload;
     function GetTable: TTable; overload;
     function GetPrimaryKeyValue: Integer;
     function PrepareSelect: TSelectQuery; overload;
-    procedure PopulateFromResult(pResult: TQueryResult); overload;
+    procedure PopulateFromResult(pResult: IQueryResult); overload;
     procedure AddOldValue(pName: string; pValue: TValue);
   protected
     isInserted: Boolean;
     isLoaded  : Boolean;
+    isLoading : Boolean;
     //procedure AddOldValue(Name: string; Value: TValue);
     //function IsDiff(Col: TColumn; Value: TValue): Boolean;
     procedure CheckLazy;
@@ -47,10 +48,10 @@ type
     // Read Functions
     class function Find<T: class>(Id: Integer): T; overload;
     class function Find<T: class>(Id: Integer; Configs: TConfigs): T; overload;
-    class function Find<T: class>(Id: Integer; Conn: TConnection): T; overload;
+    class function Find<T: class>(Id: Integer; Conn: IConnection): T; overload;
     class function FindAll<T: class>: TArray<T>; overload;
     class function FindAll<T: class>(Configs: TConfigs): TArray<T>; overload;
-    class function FindAll<T: class>(Conn: TConnection): TArray<T>; overload;
+    class function FindAll<T: class>(Conn: IConnection): TArray<T>; overload;
     function Serialize: TJSONObject;
     function SerializeProp: TJSONObject;
     function SerializeField: TJSONObject;
@@ -60,7 +61,7 @@ type
     //procedure Delete;
 
     constructor Create; overload;
-    constructor UnlazyCreate(Id: Integer; Lazy: Boolean = False);
+    constructor UnlazyCreate(Id: Integer; Lazy: Boolean; LastConn: IConnection);
   end;
 
 implementation
@@ -80,32 +81,35 @@ var
   PK         : TPrimaryKey;
   Key        : string;
   Select     : TSelectQuery;
-  QueryResult: TQueryResult;
-  Params     : TArray<TQueryParam>;
+  QueryResult: IQueryResult;
+  Params     : TArray<IQueryParam>;
 begin
-  if not Self.isLoaded then
+  if (not Self.isLoaded) and (not Self.isLoading) then
   begin
     Self.isLoaded := True;
     Ctx := TRttiContext.Create;
     try
-      Tp := Ctx.GetType(Self.ClassType);
+      if Self.oLastConn <> nil then
+      begin
+        Tp := Ctx.GetType(Self.ClassType);
 
-      for Attr in Tp.GetAttributes do
-        if (Attr is TPrimaryKey) then
-          PK := (Attr as TPrimaryKey);
+        for Attr in Tp.GetAttributes do
+          if (Attr is TPrimaryKey) then
+            PK := (Attr as TPrimaryKey);
 
-      if PK = nil then
-        raise Exception.Create('Error to get PrimaryKey on Find with ID');
+        if PK = nil then
+          raise Exception.Create('Error to get PrimaryKey on Find with ID');
 
-      Select := Self.PrepareSelect;
-      for Key in PK.Keys do
-        Select.Where(Key, ':id');
+        Select := Self.PrepareSelect;
+        for Key in PK.Keys do
+          Select.Where(Key, ':id');
 
-      TArrayUtils<TQueryParam>.Append(Params, TQueryParam.Create('id', TValue.From(Self.GetPrimaryKeyValue)));
+        TArrayUtils<IQueryParam>.Append(Params, TQueryParam.Create('id', TValue.From(Self.GetPrimaryKeyValue)));
 
-      QueryResult := Self.oLastConn.Select(Select.GetSQL, Params);
+        QueryResult := Self.oLastConn.Select(Select.GetSQL, Params);
 
-      Self.PopulateFromResult(QueryResult);
+        Self.PopulateFromResult(QueryResult);
+      end;
     except
       on E: Exception do
       begin
@@ -245,7 +249,7 @@ begin
   end;
 end;
 
-procedure TORMObject.PopulateFromResult(pResult: TQueryResult);
+procedure TORMObject.PopulateFromResult(pResult: IQueryResult);
 var
   Ctx  : TRttiContext;
   Tp   : TRttiType;
@@ -260,7 +264,7 @@ begin
   try
     Tp := Ctx.GetType(Self.ClassType);
 
-    with pResult.Query do
+    with pResult.GetQuery do
     begin
       First;
       while not Eof do
@@ -284,11 +288,17 @@ begin
                   try
                     if (not PrTP.IsOrdinal) and (PrTP.IsInstance) and
                         (PrTP.BaseType.ToString = 'TORMObject') then
+                    begin
                       Value := PrTP.GetMethod('UnlazyCreate').Invoke(
-                          PrTP.AsInstance.MetaclassType, [Field.AsInteger, pResult.Lazy]).AsObject;
+                        PrTP.AsInstance.MetaclassType,
+                        [Field.AsInteger, pResult.GetLazy, TValue.From(TQueryResult(pResult).Conn)]).AsObject;
+                    end;
 
-                    Self.oLastConn := pResult.Conn;
-                    Prop.SetValue(Self, Value);
+                    if Self.oLastConn <> nil then
+                    begin
+                      Self.oLastConn := TQueryResult(pResult).Conn;
+                      Prop.SetValue(Self, Value);
+                    end;
                   except
                     on E: Exception do
                       raise Exception.Create('PopulateFromResult->' + E.Message);
@@ -313,7 +323,7 @@ begin
 end;
 
 class function TORMObject.PopulateFromResult<T>(
-  pResult: TQueryResult): TArray<T>;
+  pResult: IQueryResult): TArray<T>;
 var
   Ctx  : TRttiContext;
   Tp   : TRttiType;
@@ -330,7 +340,7 @@ begin
   try
     Tp := Ctx.GetType(T);
 
-    with pResult.Query do
+    with pResult.GetQuery do
     begin
       First;
       while not Eof do
@@ -357,10 +367,13 @@ begin
                   try
                     if (not PrTP.IsOrdinal) and (PrTP.IsInstance) and
                         (PrTP.BaseType.ToString = 'TORMObject') then
+                    begin
                       Value := PrTP.GetMethod('UnlazyCreate').Invoke(
-                          PrTP.AsInstance.MetaclassType, [Field.AsInteger, pResult.Lazy]).AsObject;
+                          PrTP.AsInstance.MetaclassType,
+                          [Field.AsInteger, pResult.GetLazy, TValue.From(TQueryResult(pResult).Conn)]).AsObject;
+                    end;
 
-                    TORMObject(obj).oLastConn := pResult.Conn;
+                    TORMObject(obj).oLastConn := TQueryResult(pResult).Conn;
                     Prop.SetValue(TORMObject(Obj), Value);
                   except
                     on E: Exception do
@@ -430,10 +443,15 @@ begin
             (PrTP.BaseType.ToString = 'TORMObject') then
           begin
             Obj := TORMObject(Prop.GetValue(Self).AsObject);
-            PrTP.GetMethod('CheckLazy').Invoke(Obj, []);
-            Prop.SetValue(Self, TValue.From(Obj));
-            Result.AddPair(TJSONPair.Create((Attr as TColumn).Name,
-                Obj.SerializeField));
+            if Obj <> nil then
+            begin
+              Obj.CheckLazy;
+              Prop.SetValue(Self, TValue.From(Obj));
+              Result.AddPair(TJSONPair.Create((Attr as TColumn).Name,
+                  Obj.SerializeField));
+            end
+            else
+              Result.AddPair(TJSONPair.Create(Prop.Name, TJSONNull.Create));
           end
           else
             Result.AddPair(TJSONPair.Create((Attr as TColumn).Name, Prop.GetValue(Self).ToString));
@@ -453,6 +471,7 @@ var
   PrTP: TRttiInstanceType;
   Obj : TORMObject;
 begin
+  Self.CheckLazy;
   Result := TJSONObject.Create;
   Ctx    := TRttiContext.Create;
 
@@ -466,10 +485,15 @@ begin
         (PrTP.BaseType.ToString = 'TORMObject') then
       begin
         Obj := TORMObject(Prop.GetValue(Self).AsObject);
-        PrTP.GetMethod('CheckLazy').Invoke(Obj, []);
-        Prop.SetValue(Self, TValue.From(Obj));
-        Result.AddPair(TJSONPair.Create(Prop.Name,
-            Obj.SerializeField));
+        if Obj <> nil then
+        begin
+          Obj.CheckLazy;
+          Prop.SetValue(Self, TValue.From(Obj));
+          Result.AddPair(TJSONPair.Create(Prop.Name,
+              Obj.SerializeField));
+        end
+        else
+          Result.AddPair(TJSONPair.Create(Prop.Name, TJSONNull.Create));
       end
       else
         Result.AddPair(TJSONPair.Create(Prop.Name, Prop.GetValue(Self).ToString));
@@ -479,7 +503,8 @@ begin
   end;
 end;
 
-constructor TORMObject.UnlazyCreate(Id: Integer; Lazy: Boolean);
+constructor TORMObject.UnlazyCreate(Id: Integer; Lazy: Boolean;
+  LastConn: IConnection);
 var
   Ctx  : TRttiContext;
   Tp   : TRttiType;
@@ -489,6 +514,7 @@ var
 begin
   inherited Create;
   Self.isInserted := True;
+  Self.isLoading  := True;
   Self.isLoaded   := False;
 
   Ctx := TRttiContext.Create;
@@ -511,11 +537,15 @@ begin
         begin
           if PK.IsKey((Attr as TColumn).Name) then
           begin
-            Prop.SetValue(Self, TValue.From(Id));
+            Prop.SetValue(Self, Id);
           end;
         end;
       end;
     end;
+
+    Self.oLastConn := LastConn.Duplicate;
+
+    Self.isLoading := False;
 
     if not Lazy then
       Self.CheckLazy;
@@ -534,7 +564,7 @@ begin
   Result := TORMObject.Find<T>(Id, TConnection.Create(Configs));
 end;
 
-class function TORMObject.Find<T>(Id: Integer; Conn: TConnection): T;
+class function TORMObject.Find<T>(Id: Integer; Conn: IConnection): T;
 var
   Ctx        : TRttiContext;
   Tp         : TRttiType;
@@ -542,8 +572,8 @@ var
   PK         : TPrimaryKey;
   Key        : string;
   Select     : TSelectQuery;
-  QueryResult: TQueryResult;
-  Params     : TArray<TQueryParam>;
+  QueryResult: IQueryResult;
+  Params     : TArray<IQueryParam>;
 begin
   Result := nil;
 
@@ -562,7 +592,7 @@ begin
     for Key in PK.Keys do
       Select.Where(Key, ':id');
 
-    TArrayUtils<TQueryParam>.Append(Params, TQueryParam.Create('id', TValue.From(Id)));
+    TArrayUtils<IQueryParam>.Append(Params, TQueryParam.Create('id', TValue.From(Id)));
 
     QueryResult := Conn.Select(Select.GetSQL, Params);
 
@@ -573,9 +603,9 @@ begin
   end;
 end;
 
-class function TORMObject.FindAll<T>(Conn: TConnection): TArray<T>;
+class function TORMObject.FindAll<T>(Conn: IConnection): TArray<T>;
 var
-  QueryResult: TQueryResult;
+  QueryResult: IQueryResult;
 begin
   Result := TArray<T>.Create();
   try

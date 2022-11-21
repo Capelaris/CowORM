@@ -17,7 +17,7 @@ implementation
 
 initialization
   DefaultConfig := TConfigs.Create(ctFB, 'localhost', 3050, 'sysdba', 'masterkey',
-      TPath.GetFullPath('../../../../database/examples.fdb'), True);
+      TPath.GetFullPath('../../../../database/examples.fdb'));
   DefaultConn   := TConnection.Create(DefaultConfig);
 
 end.

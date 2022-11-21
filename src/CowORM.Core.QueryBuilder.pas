@@ -119,6 +119,14 @@ type
     function GetSQL: string;
   end;
 
+  {TInsertQuery = class(TQuery)
+  private
+    sSQL: string;
+    function GenerateSQL: string; override;
+  public
+    function GetSQL: string;
+  end;   }
+
 implementation
 
 { TQuery }

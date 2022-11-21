@@ -9,7 +9,7 @@ uses
   Winapi.Windows, Winapi.Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, IOUtils, CowORM,
   CowORM.Helpers, FireDAC.Comp.Client, StrUtils, Types, Diagnostics, TimeSpan,
-  Rtti, ComCtrls, Invoice;
+  Rtti, ComCtrls;
 
 type
   TfMainForm = class(TForm)
@@ -57,9 +57,9 @@ var
   Config : TConfigs;
   Conn   : TConnection;
   Select : TSelectQuery;
-  Tables : TQueryResult;
-  TablesC: TQueryResult;
-  Columns: TQueryResult;
+  Tables : IQueryResult;
+  TablesC: IQueryResult;
+  Columns: IQueryResult;
   PK, FK : TArray<string>;
   FKCols : TArray<string>;
   Content: TStringList;
@@ -98,14 +98,14 @@ begin
   Count   := 0;
   CountC  := 0;
   pbProgress.Min := 0;
-  pbProgress.Max := TablesC.Query.FieldByName('count').AsInteger;
+  pbProgress.Max := TablesC.GetQuery.FieldByName('count').AsInteger;
   pbProgress.Position := Count;
-  lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(TablesC.Query.FieldByName('count').AsInteger);
+  lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(TablesC.GetQuery.FieldByName('count').AsInteger);
   lblColunas.Caption  := 'Colunas: ' + IntTostr(CountC);
   SW        := TStopwatch.StartNew;
 
-  Tables.Query.First;
-  while not Tables.Query.Eof do
+  Tables.GetQuery.First;
+  while not Tables.GetQuery.Eof do
   begin
     Columns := Conn.Select(
         'with                                                                             ' + #13#10 +
@@ -214,13 +214,13 @@ begin
         'WHERE (UPPER(RF.RDB$RELATION_NAME) = upper(:TABLE_NAME)) AND                     ' + #13#10 +
         '      (COALESCE(RF.RDB$SYSTEM_FLAG, 0) = 0)                                      ' + #13#10 +
         'ORDER BY fk.FK_NAME, RF.RDB$FIELD_POSITION                                       ',
-        [TQueryParam.Create('table_name', TValue.From(Tables.Query.FieldByName('rdb$relation_name').AsString))]);
+        [TQueryParam.Create('table_name', TValue.From(Tables.GetQuery.FieldByName('rdb$relation_name').AsString))]);
 
     PK     := [];
     FK     := [];
     FKCols := [];
     FKName := '';
-    with Columns.Query do
+    with Columns.GetQuery do
     begin
       First;
 
@@ -241,13 +241,13 @@ begin
       if Length(PK) = 1 then
         PKAttr := #13#10 + '  [TPrimaryKey(''' + string.Join(''', ''', PK) + ''')]';
 
-      ClassN := FormatTableName(Tables.Query.FieldByName('rdb$relation_name').AsString);
+      ClassN := FormatTableName(Tables.GetQuery.FieldByName('rdb$relation_name').AsString);
       Content := TStringList.Create;
       Content.Add('unit ' + ClassN + ';' + #13#10);
       Content.Add('interface' + #13#10);
       Content.Add('uses CowORM' + FKUses + ';' + #13#10);
       Content.Add('type');
-      Content.Add('  [TTable(' + QuotedStr(Tables.Query.FieldByName('rdb$relation_name').AsString) + ')]' + PKAttr);
+      Content.Add('  [TTable(' + QuotedStr(Tables.GetQuery.FieldByName('rdb$relation_name').AsString) + ')]' + PKAttr);
       Content.Add('  T' + ClassN + ' = class(TORMObject)');
       Content.Add('  private');
 
@@ -306,7 +306,7 @@ begin
           FKName := FieldByName('FK_NAME').AsString;
           while (FieldByName('FK_NAME').AsString = FKName) and (not Eof) do
           begin
-            Content.Add('    [' + GetColumnClass(Columns.Query) + ']');
+            Content.Add('    [' + GetColumnClass(Columns.GetQuery) + ']');
             Next;
           end;
           Content.Add('    property ' + FormatTableName(FieldByName('FK_NAME').AsString) + ': T' +
@@ -316,7 +316,7 @@ begin
         end
         else
         begin
-          Content.Add('    [' + GetColumnClass(Columns.Query) + ']');
+          Content.Add('    [' + GetColumnClass(Columns.GetQuery) + ']');
           Content.Add('    property ' + FormatTableName(FieldByName('FIELD_NAME').AsString) + ': ' +
               GetFieldType(FieldByName('FIELD_TYPE').AsString) + ' read Read' +
               FormatTableName(FieldByName('FIELD_NAME').AsString) + ' write Write' +
@@ -373,10 +373,10 @@ begin
 
     Count := Count + 1;
     pbProgress.Position := Count;
-    lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(TablesC.Query.FieldByName('count').AsInteger);
+    lblStatus.Caption   := 'Tabelas: ' + IntTostr(Count) + '/' + IntTostr(TablesC.GetQuery.FieldByName('count').AsInteger);
     Application.ProcessMessages;
 
-    Tables.Query.Next;
+    Tables.GetQuery.Next;
   end;
   Elapsed := SW.Elapsed;
   Seconds := (Elapsed.TotalMilliseconds / 1000);
@@ -421,8 +421,6 @@ procedure TfMainForm.FormCreate(Sender: TObject);
 begin
   edtDatabase.Text := TPath.GetFullPath('../../../../database/examples.fdb');
   edtModels.Text   := TPath.GetFullPath('../../models');
-
-  ShowMessage(TInvoice.FindAll<TInvoice>[0].Serialize.ToJSON);
 end;
 
 function TfMainForm.GetColumnClass(pQuery: TFDQuery): string;

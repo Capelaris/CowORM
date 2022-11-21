@@ -19,13 +19,7 @@ uses
   CowORM in '..\..\src\CowORM.pas',
   Vcl.Themes,
   Vcl.Styles,
-  Customer in 'models\Customer.pas',
-  Invoice in 'models\Invoice.pas',
-  InvoiceLine in 'models\InvoiceLine.pas',
-  Product in 'models\Product.pas',
-  Webrole in 'models\Webrole.pas',
-  Webuser in 'models\Webuser.pas',
-  Webuserinrole in 'models\Webuserinrole.pas';
+  CowORM.Interfaces in '..\..\src\CowORM.Interfaces.pas';
 
 {$R *.res}
 

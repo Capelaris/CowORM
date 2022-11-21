@@ -4,7 +4,7 @@ interface
 
 uses
   CowORM.Commons, CowORM.Helpers, CowORM.Core.QueryParam, CowORM.Core.Configurations,
-  CowORM.Core.QueryResult, SysUtils,
+  CowORM.Core.QueryResult, CowORM.Interfaces, SysUtils, JSON,
   //Default FireDAC units
   FireDAC.Comp.Client, FireDAC.Comp.UI, FireDAC.Stan.Def, FireDAC.DApt,
   FireDAC.Stan.Async, FireDAC.Phys, FireDAC.UI.Intf, FireDAC.VCLUI.Wait,
@@ -15,7 +15,7 @@ uses
   FireDAC.Phys.MySQL, FireDAC.Phys.MySQLDef;
 
 type
-  TConnection = class
+  TConnection = class(TInterfacedObject, IConnection)
   private
     oFDCon        : TFDConnection;
     oFDTrans      : TFDTransaction;
@@ -23,14 +23,22 @@ type
     oFDWaitCursor : TFDGUIxWaitCursor;
     oFDQuery      : TFDQuery;
     bLazyResults  : Boolean;
+    oConfigs      : TConfigs;
+
+    procedure SetLazy(Value: Boolean);
+    function GetLazy: Boolean;
+    procedure SetConn(Value: TFDConnection);
+    function GetConn: TFDConnection;
   public
     constructor Create; overload;
     constructor Create(Configs: TConfigs); overload;
-    function Select(pSQL: string; pParams: TArray<TQueryParam>): TQueryResult; overload;
-    function Select(pSQL: string): TQueryResult; overload;
-    procedure ExecuteSQL(pSQL: string; pParams: TArray<TQueryParam>); overload;
+    function Select(pSQL: string; pParams: TArray<IQueryParam>): IQueryResult; overload;
+    function Select(pSQL: string): IQueryResult; overload;
+    procedure ExecuteSQL(pSQL: string; pParams: TArray<IQueryParam>); overload;
     procedure ExecuteSQL(pSQL: string); overload;
     procedure CommitTransactions;
+    function Serialize: TJSONObject;
+    function Duplicate: IConnection;
 
     property Lazy: Boolean       read bLazyResults write bLazyResults;
     property Conn: TFDConnection read oFDCon       write oFDCon;
@@ -63,6 +71,7 @@ begin
   Create;
 
   Self.bLazyResults := Configs.Lazy;
+  Self.oConfigs     := Configs;
   with Self.oFDCon do
   begin
     DriverName := GetDriverName(Configs.ConnType);
@@ -85,9 +94,14 @@ begin
   end;
 end;
 
-procedure TConnection.ExecuteSQL(pSQL: string; pParams: TArray<TQueryParam>);
+function TConnection.Duplicate: IConnection;
+begin
+  Result := TConnection.Create(Self.oConfigs);
+end;
+
+procedure TConnection.ExecuteSQL(pSQL: string; pParams: TArray<IQueryParam>);
 var
-  Param: TQueryParam;
+  Param: IQueryParam;
 begin
   with Self.oFDQuery do
   begin
@@ -96,7 +110,7 @@ begin
     for Param in pParams do
     begin
       try
-        ParamByName(Param.ParamName).Value := Param.Value.AsVariant;
+        ParamByName(Param.GetParamName).Value := Param.GetValue.AsVariant;
       except
         on E: Exception do
         begin
@@ -123,16 +137,70 @@ begin
   ExecuteSQL(pSQL, []);
 end;
 
-function TConnection.Select(pSQL: string): TQueryResult;
+function TConnection.GetConn: TFDConnection;
 begin
-  Result := TQueryResult.Create(Self.oFDCon, Self.bLazyResults);
+  Result := Self.oFDCon;
+end;
+
+function TConnection.GetLazy: Boolean;
+begin
+  Result := Self.bLazyResults;
+end;
+
+function TConnection.Select(pSQL: string): IQueryResult;
+begin
+  Result := TQueryResult.Create(Self, Self.bLazyResults);
   Result.Select(pSQL);
 end;
 
-function TConnection.Select(pSQL: string;
-  pParams: TArray<TQueryParam>): TQueryResult;
+function TConnection.Serialize: TJSONObject;
 begin
-  Result := TQueryResult.Create(Self.oFDCon, Self.bLazyResults);
+  Result := TJSONObject.Create;
+  With Result do
+  begin
+    if Self.oFDCon <> nil then
+      AddPair(TJSONPair.Create('FDConn', Self.oFDCon.ClassName))
+    else
+      AddPair(TJSONPair.Create('FDConn', TJSONNull.Create));
+
+    if Self.oFDTrans <> nil then
+      AddPair(TJSONPair.Create('FDTrans', Self.oFDTrans.ClassName))
+    else
+      AddPair(TJSONPair.Create('FDTrans', TJSONNull.Create));
+
+    if Self.oFDTransUpdate <> nil then
+      AddPair(TJSONPair.Create('FDTransUpdate', Self.oFDTransUpdate.ClassName))
+    else
+      AddPair(TJSONPair.Create('FDTransUpdate', TJSONNull.Create));
+
+    if Self.oFDWaitCursor <> nil then
+      AddPair(TJSONPair.Create('FDWaitCursor', Self.oFDWaitCursor.ClassName))
+    else
+      AddPair(TJSONPair.Create('FDWaitCursor', TJSONNull.Create));
+
+    if Self.oFDQuery <> nil then
+      AddPair(TJSONPair.Create('FDQuery', Self.oFDQuery.ClassName))
+    else
+      AddPair(TJSONPair.Create('FDQuery', TJSONNull.Create));
+
+    AddPair(TJSONPair.Create('Lazy', TJSONBool.Create(Self.bLazyResults)));
+  end;
+end;
+
+procedure TConnection.SetConn(Value: TFDConnection);
+begin
+  Self.oFDCon := Value;
+end;
+
+procedure TConnection.SetLazy(Value: Boolean);
+begin
+  Self.bLazyResults := Value;
+end;
+
+function TConnection.Select(pSQL: string;
+  pParams: TArray<IQueryParam>): IQueryResult;
+begin
+  Result := TQueryResult.Create(Self, Self.bLazyResults);
   Result.Select(pSQL, pParams);
 end;
 

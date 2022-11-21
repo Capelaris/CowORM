@@ -6,6 +6,7 @@ uses
   Rtti,
   CowORM.Commons,
   CowORM.Constants,
+  CowORM.Interfaces,
   CowORM.Core.Columns,
   CowORM.Core.Configurations,
   CowORM.Core.Connection,
@@ -23,6 +24,12 @@ type
   TJoinType       = CowORM.Commons.TJoinType;
   TQueryType      = CowORM.Commons.TQueryType;
   TConnectionType = CowORM.Commons.TConnectionType;
+
+  //Interfaces
+  IConfigs     = CowORM.Interfaces.IConfigs;
+  IQueryParam  = CowORM.Interfaces.IQueryParam;
+  IQueryResult = CowORM.Interfaces.IQueryResult;
+  IConnection  = CowORM.Interfaces.IConnection;
 
   //Columns
   TPrimaryKey            = CowORM.Core.Columns.TPrimaryKey;
