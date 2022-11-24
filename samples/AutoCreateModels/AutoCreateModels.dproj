@@ -108,16 +108,11 @@
         </DCCReference>
         <DCCReference Include="..\..\src\CowORM.Commons.pas"/>
         <DCCReference Include="..\..\src\CowORM.Constants.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Core.Columns.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.Configurations.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.Connection.pas"/>
         <DCCReference Include="..\..\src\CowORM.Core.ORMObject.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Core.QueryBuilder.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Core.QueryCondition.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Core.QueryJoin.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Core.QueryParam.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Core.QueryResult.pas"/>
-        <DCCReference Include="..\..\src\CowORM.Core.Tables.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.Param.pas"/>
+        <DCCReference Include="..\..\src\CowORM.Core.Result.pas"/>
         <DCCReference Include="..\..\src\CowORM.Helpers.pas"/>
         <DCCReference Include="..\..\src\CowORM.pas"/>
         <DCCReference Include="..\..\src\CowORM.Interfaces.pas"/>

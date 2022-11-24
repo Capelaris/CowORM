@@ -1,13 +1,13 @@
-unit CowORM.Core.QueryResult;
+unit CowORM.Core.Result;
 
 interface
 
 uses
-  CowORM.Commons, CowORM.Helpers, CowORM.Core.QueryParam, CowORM.Interfaces,
+  CowORM.Commons, CowORM.Helpers, CowORM.Interfaces,
   Rtti, SysUtils, FireDAC.Comp.Client, FireDAC.Stan.Param, JSON;
 
 type
-  TQueryResult = class(TInterfacedObject, IQueryResult, ISerializable)
+  TResult = class(TInterfacedObject, IResult)
   private
     oFDQuery   : TFDQuery;
     oConnection: IConnection;
@@ -23,8 +23,8 @@ type
     constructor Create; overload;
     constructor Create(pConn: IConnection; pLazy: Boolean = False); overload;
 
-    function Select(pSQL: string; pParams: TArray<IQueryParam>): IQueryResult; overload;
-    function Select(pSQL: string): IQueryResult; overload;
+    function Select(pSQL: string; pParams: TArray<IParam>): IResult; overload;
+    function Select(pSQL: string): IResult; overload;
     function Serialize: TJSONObject;
     function GetConnectionCopy: IConnection;
 
@@ -35,9 +35,9 @@ type
 
 implementation
 
-{ TQueryResult }
+{ TResult }
 
-constructor TQueryResult.Create(pConn: IConnection; pLazy: Boolean);
+constructor TResult.Create(pConn: IConnection; pLazy: Boolean);
 begin
   Self.Create;
   Self.oFDQuery.Connection := pConn.GetConn;
@@ -45,32 +45,32 @@ begin
   Self.oConnection         := pConn;
 end;
 
-function TQueryResult.GetConnection: IConnection;
+function TResult.GetConnection: IConnection;
 begin
   Result := Self.oConnection;
 end;
 
-function TQueryResult.GetConnectionCopy: IConnection;
+function TResult.GetConnectionCopy: IConnection;
 begin
   Result := Self.oConnection.Duplicate;
 end;
 
-function TQueryResult.GetLazy: Boolean;
+function TResult.GetLazy: Boolean;
 begin
   Result := Self.bLazy;
 end;
 
-function TQueryResult.GetQuery: TFDQuery;
+function TResult.GetQuery: TFDQuery;
 begin
   Result := Self.oFDQuery;
 end;
 
-function TQueryResult.Select(pSQL: string): IQueryResult;
+function TResult.Select(pSQL: string): IResult;
 begin
   Result := Select(pSQL, []);
 end;
 
-function TQueryResult.Serialize: TJSONObject;
+function TResult.Serialize: TJSONObject;
 begin
   Result := TJSONObject.Create;
   With Result do
@@ -89,25 +89,25 @@ begin
   end;
 end;
 
-procedure TQueryResult.SetConnection(Value: IConnection);
+procedure TResult.SetConnection(Value: IConnection);
 begin
   Self.oConnection := Value;
 end;
 
-procedure TQueryResult.SetLazy(Value: Boolean);
+procedure TResult.SetLazy(Value: Boolean);
 begin
   Self.bLazy := Value;
 end;
 
-procedure TQueryResult.SetQuery(Value: TFDQuery);
+procedure TResult.SetQuery(Value: TFDQuery);
 begin
   Self.oFDQuery := Value;
 end;
 
-function TQueryResult.Select(pSQL: string;
-  pParams: TArray<IQueryParam>): IQueryResult;
+function TResult.Select(pSQL: string;
+  pParams: TArray<IParam>): IResult;
 var
-  Param: IQueryParam;
+  Param: IParam;
 begin
   Result := Self;
   with Self.oFDQuery do
@@ -137,7 +137,7 @@ begin
   end;
 end;
 
-constructor TQueryResult.Create;
+constructor TResult.Create;
 begin
   inherited Create;
   Self.oFDQuery := TFDQuery.Create(nil);

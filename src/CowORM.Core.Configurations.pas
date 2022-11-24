@@ -3,10 +3,10 @@ unit CowORM.Core.Configurations;
 interface
 
 uses
-  CowORM.Commons;
+  CowORM.Commons, CowORM.Interfaces, JSON;
 
 type
-  TConfigs = class
+  TConfigs = class(TInterfacedObject, IConfigs)
   private
     tType    : TConnectionType;
     sDatabase: string;
@@ -34,6 +34,9 @@ type
     { Public Declarations }
     constructor Create(pType: TConnectionType; pHostname: string; pPort: Integer;
       pUsername, pPassword, pDatabase: string; pLazy: Boolean = False);
+
+    function Serialize: TJSONObject;
+
     property ConnType: TConnectionType read GetConnType;
     property Database: string          read GetDatabase;
     property Hostname: string          read GetHostname;
@@ -96,6 +99,21 @@ end;
 function TConfigs.GetUserName: string;
 begin
   Result := Self.sUserName;
+end;
+
+function TConfigs.Serialize: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  with Result do
+  begin
+    AddPair('Type',     Self.tType.ToString);
+    AddPair('Database', Self.sDatabase);
+    AddPair('Hostname', Self.sHostname);
+    AddPair('Port',     TJSONNumber.Create(Self.iPort));
+    AddPair('UserName', Self.sUserName);
+    AddPair('Password', Self.sPassword);
+    AddPair('Lazy',     TJSONBool.Create(Self.bLazy));
+  end;
 end;
 
 procedure TConfigs.SetConnType(Value: TConnectionType);

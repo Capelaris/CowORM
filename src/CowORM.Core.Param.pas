@@ -1,12 +1,12 @@
-unit CowORM.Core.QueryParam;
+unit CowORM.Core.Param;
 
 interface
 
 uses
-  CowORM.Core.Columns, CowORM.Interfaces, Rtti, JSON;
+  CowORM.Interfaces, Rtti, JSON, PigQuery;
 
 type
-  TQueryParam = class(TInterfacedObject, IQueryParam, ISerializable)
+  TParam = class(TInterfacedObject, IParam)
   private
     sFieldName: string;
     sParamName: string;
@@ -21,8 +21,9 @@ type
   public
     constructor Create(pFieldName, pParamName: string; pValue: TValue); overload;
     constructor Create(pFieldName: string; pValue: TValue); overload;
-    constructor Create(pColumn: TColumn; pValue: TValue); overload;
-    constructor Create(pColumn: TColumn; pParamName: string; pValue: TValue); overload;
+    constructor Create(pColumn: IColumn; pValue: TValue); overload;
+    constructor Create(pColumn: IColumn; pParamName: string; pValue: TValue); overload;
+
     function Serialize: TJSONObject;
 
     property FieldName: string read GetFieldName write SetFieldName;
@@ -32,9 +33,9 @@ type
 
 implementation
 
-{ TQueryParam }
+{ TParam }
 
-constructor TQueryParam.Create(pFieldName, pParamName: string; pValue: TValue);
+constructor TParam.Create(pFieldName, pParamName: string; pValue: TValue);
 begin
   inherited Create;
 
@@ -46,38 +47,38 @@ begin
   end;
 end;
 
-constructor TQueryParam.Create(pFieldName: string; pValue: TValue);
+constructor TParam.Create(pFieldName: string; pValue: TValue);
 begin
   Create(pFieldName, pFieldName, pValue);
 end;
 
-constructor TQueryParam.Create(pColumn: TColumn; pValue: TValue);
+constructor TParam.Create(pColumn: IColumn; pValue: TValue);
 begin
-  Create(pColumn.Name, pColumn.Name, pValue);
+  Create(pColumn.GetName, pColumn.GetName, pValue);
 end;
 
-constructor TQueryParam.Create(pColumn: TColumn; pParamName: string;
+constructor TParam.Create(pColumn: IColumn; pParamName: string;
   pValue: TValue);
 begin
-  Create(pColumn.Name, pParamName, pValue);
+  Create(pColumn.GetName, pParamName, pValue);
 end;
 
-function TQueryParam.GetFieldName: string;
+function TParam.GetFieldName: string;
 begin
   Result := Self.sFieldName;
 end;
 
-function TQueryParam.GetParamName: string;
+function TParam.GetParamName: string;
 begin
   Result := Self.sParamName;
 end;
 
-function TQueryParam.GetValue: TValue;
+function TParam.GetValue: TValue;
 begin
   Result := Self.oValue;
 end;
 
-function TQueryParam.Serialize: TJSONObject;
+function TParam.Serialize: TJSONObject;
 begin
   Result := TJSONObject.Create;
   With Result do
@@ -88,17 +89,17 @@ begin
   end;
 end;
 
-procedure TQueryParam.SetFieldName(Value: string);
+procedure TParam.SetFieldName(Value: string);
 begin
   Self.sFieldName := Value;
 end;
 
-procedure TQueryParam.SetParamName(Value: string);
+procedure TParam.SetParamName(Value: string);
 begin
   Self.sParamName := Value;
 end;
 
-procedure TQueryParam.SetValue(Value: TValue);
+procedure TParam.SetValue(Value: TValue);
 begin
   Self.oValue := Value;
 end;

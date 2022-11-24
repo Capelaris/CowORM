@@ -3,8 +3,8 @@ unit CowORM.Core.Connection;
 interface
 
 uses
-  CowORM.Commons, CowORM.Helpers, CowORM.Core.QueryParam, CowORM.Core.Configurations,
-  CowORM.Core.QueryResult, CowORM.Interfaces, SysUtils, JSON,
+  CowORM.Commons, CowORM.Helpers, CowORM.Core.Param,
+  CowORM.Core.Result, CowORM.Interfaces, SysUtils, JSON,
   //Default FireDAC units
   FireDAC.Comp.Client, FireDAC.Comp.UI, FireDAC.Stan.Def, FireDAC.DApt,
   FireDAC.Stan.Async, FireDAC.Phys, FireDAC.UI.Intf, FireDAC.VCLUI.Wait,
@@ -23,7 +23,7 @@ type
     oFDWaitCursor : TFDGUIxWaitCursor;
     oFDQuery      : TFDQuery;
     bLazyResults  : Boolean;
-    oConfigs      : TConfigs;
+    oConfigs      : IConfigs;
 
     procedure SetLazy(Value: Boolean);
     function GetLazy: Boolean;
@@ -31,10 +31,10 @@ type
     function GetConn: TFDConnection;
   public
     constructor Create; overload;
-    constructor Create(Configs: TConfigs); overload;
-    function Select(pSQL: string; pParams: TArray<IQueryParam>): IQueryResult; overload;
-    function Select(pSQL: string): IQueryResult; overload;
-    procedure ExecuteSQL(pSQL: string; pParams: TArray<IQueryParam>); overload;
+    constructor Create(Configs: IConfigs); overload;
+    function Select(pSQL: string; pParams: TArray<IParam>): IResult; overload;
+    function Select(pSQL: string): IResult; overload;
+    procedure ExecuteSQL(pSQL: string; pParams: TArray<IParam>); overload;
     procedure ExecuteSQL(pSQL: string); overload;
     procedure CommitTransactions;
     function Serialize: TJSONObject;
@@ -66,23 +66,23 @@ begin
   end;
 end;
 
-constructor TConnection.Create(Configs: TConfigs);
+constructor TConnection.Create(Configs: IConfigs);
 begin
   Create;
 
-  Self.bLazyResults := Configs.Lazy;
+  Self.bLazyResults := Configs.GetLazy;
   Self.oConfigs     := Configs;
   with Self.oFDCon do
   begin
-    DriverName := GetDriverName(Configs.ConnType);
+    DriverName := GetDriverName(Configs.GetConnType);
     with TFDPhysMySQLConnectionDefParams(Params) do
     begin
-      DriverID := GetDriverID(Configs.ConnType);
-      Database := Configs.Database;
-      Server   := Configs.Hostname;
-      Port     := Configs.Port;
-      UserName := Configs.UserName;
-      Password := Configs.Password;
+      DriverID := GetDriverID(Configs.GetConnType);
+      Database := Configs.GetDatabase;
+      Server   := Configs.GetHostname;
+      Port     := Configs.GetPort;
+      UserName := Configs.GetUserName;
+      Password := Configs.GetPassword;
     end;
 
     try
@@ -99,9 +99,9 @@ begin
   Result := TConnection.Create(Self.oConfigs);
 end;
 
-procedure TConnection.ExecuteSQL(pSQL: string; pParams: TArray<IQueryParam>);
+procedure TConnection.ExecuteSQL(pSQL: string; pParams: TArray<IParam>);
 var
-  Param: IQueryParam;
+  Param: IParam;
 begin
   with Self.oFDQuery do
   begin
@@ -147,9 +147,9 @@ begin
   Result := Self.bLazyResults;
 end;
 
-function TConnection.Select(pSQL: string): IQueryResult;
+function TConnection.Select(pSQL: string): IResult;
 begin
-  Result := TQueryResult.Create(Self, Self.bLazyResults);
+  Result := TResult.Create(Self, Self.bLazyResults);
   Result.Select(pSQL);
 end;
 
@@ -198,9 +198,9 @@ begin
 end;
 
 function TConnection.Select(pSQL: string;
-  pParams: TArray<IQueryParam>): IQueryResult;
+  pParams: TArray<IParam>): IResult;
 begin
-  Result := TQueryResult.Create(Self, Self.bLazyResults);
+  Result := TResult.Create(Self, Self.bLazyResults);
   Result.Select(pSQL, pParams);
 end;
 

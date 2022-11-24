@@ -3,26 +3,22 @@ unit CowORM.Commons;
 interface
 
 type
-  TColumnType = (
-    //Unknown
-    ctUnknown,
-    //Integers
-    ctSmallInt, ctInteger, ctBigInt,
-    //Floats
-    ctDecimal, ctNumeric, ctFloat, ctDoublePrecision,
-    //Dates and Times
-    ctDate, ctTime, ctTimeStamp,
-    //Strings
-    ctChar, ctVarchar,
-    //Blobs
-    ctBlobBinary, ctBlobText);
-
-  TJoinType = (jtNone, jtInner, jtLeft, jtRight, jtOuter);
-
-  TQueryType = (qtSelect, qtUpdate, qtDelete, qtInsert);
-
   TConnectionType = (ctFB, ctMYSQL);
 
+  TConnectionTypeHelper = record helper for TConnectionType
+    function ToString: string;
+  end;
+
 implementation
+
+{ TConnectionTypeHelper }
+
+function TConnectionTypeHelper.ToString: string;
+begin
+  case Self of
+    ctFB:    Result := 'FireBird';
+    ctMYSQL: Result := 'MySQL';
+  end;
+end;
 
 end.

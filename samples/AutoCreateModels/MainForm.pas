@@ -7,7 +7,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, SysUtils, Variants, Classes, Graphics,
-  Controls, Forms, Dialogs, StdCtrls, IOUtils, CowORM,
+  Controls, Forms, Dialogs, StdCtrls, IOUtils, CowORM, PigQuery,
   CowORM.Helpers, FireDAC.Comp.Client, StrUtils, Types, Diagnostics, TimeSpan,
   Rtti, ComCtrls;
 
@@ -57,9 +57,9 @@ var
   Config : TConfigs;
   Conn   : TConnection;
   Select : TSelectQuery;
-  Tables : IQueryResult;
-  TablesC: IQueryResult;
-  Columns: IQueryResult;
+  Tables : IResult;
+  TablesC: IResult;
+  Columns: IResult;
   PK, FK : TArray<string>;
   FKCols : TArray<string>;
   Content: TStringList;
@@ -74,7 +74,7 @@ var
   Elapsed: TTimeSpan;
   Seconds: Double;
 begin
-  Config := TConfigs.Create(TConnectionType.ctFB, edtParamIP.Text,
+  Config := TConfigs.Create(ctFB, edtParamIP.Text,
       StrToInt(edtParamPort.Text), edtParamUsername.Text, edtParamPassword.Text,
       edtDatabase.Text);
   Conn := TConnection.Create(Config);
@@ -214,7 +214,7 @@ begin
         'WHERE (UPPER(RF.RDB$RELATION_NAME) = upper(:TABLE_NAME)) AND                     ' + #13#10 +
         '      (COALESCE(RF.RDB$SYSTEM_FLAG, 0) = 0)                                      ' + #13#10 +
         'ORDER BY fk.FK_NAME, RF.RDB$FIELD_POSITION                                       ',
-        [TQueryParam.Create('table_name', TValue.From(Tables.GetQuery.FieldByName('rdb$relation_name').AsString))]);
+        [TParam.Create('table_name', TValue.From(Tables.GetQuery.FieldByName('rdb$relation_name').AsString))]);
 
     PK     := [];
     FK     := [];
@@ -245,7 +245,7 @@ begin
       Content := TStringList.Create;
       Content.Add('unit ' + ClassN + ';' + #13#10);
       Content.Add('interface' + #13#10);
-      Content.Add('uses CowORM' + FKUses + ';' + #13#10);
+      Content.Add('uses CowORM, PigQuery' + FKUses + ';' + #13#10);
       Content.Add('type');
       Content.Add('  [TTable(' + QuotedStr(Tables.GetQuery.FieldByName('rdb$relation_name').AsString) + ')]' + PKAttr);
       Content.Add('  T' + ClassN + ' = class(TORMObject)');
