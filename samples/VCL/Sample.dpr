@@ -22,7 +22,8 @@ uses
   Product in 'models\Product.pas',
   Webrole in 'models\Webrole.pas',
   Webuser in 'models\Webuser.pas',
-  Webuserinrole in 'models\Webuserinrole.pas';
+  Webuserinrole in 'models\Webuserinrole.pas',
+  Connection in 'Connection.pas';
 
 {$R *.res}
 

@@ -398,16 +398,22 @@ begin
   end;
 end;
 
-function TORMObject.PrepareSelect: ISelectQuery;
+function TORMObject.PrepareSelect: ISelectQuery;   
+var
+  Arr: TArray<IColumn>;
 begin
   Result := TSelectQuery.Create(Self.GetTable);
-  Result.SetColumns(Self.GetColumns);
+  Arr    := Self.GetColumns;
+  Result.SetColumns(Arr);
 end;
 
 class function TORMObject.PrepareSelect<T>: ISelectQuery;
+var
+  Arr: TArray<IColumn>;
 begin
-  Result := TSelectQuery.Create(TORMObject.GetTable<T>);
-  Result.SetColumns(TORMObject.GetColumns<T>);
+  Result := TSelectQuery.Create(TORMObject.GetTable<T>); 
+  Arr    := TORMObject.GetColumns<T>;
+  Result.SetColumns(Arr);
 end;
 
 function TORMObject.Serialize: TJSONObject;
