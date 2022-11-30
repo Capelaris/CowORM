@@ -25,10 +25,8 @@ type
     procedure WritePhone(Value: string);
     function ReadPhone: string;
   public
-    class function Find(Id: Integer): TCustomer; overload;                   
     class function Find(Id: Integer; Configs: IConfigs): TCustomer; overload;
     class function Find(Id: Integer; Conn: IConnection): TCustomer; overload;
-    class function FindAll: TArray<TCustomer>; overload;                     
     class function FindAll(Configs: IConfigs): TArray<TCustomer>; overload;  
     class function FindAll(Conn: IConnection): TArray<TCustomer>; overload;  
 
@@ -46,11 +44,6 @@ type
 
 implementation
 
-class function TCustomer.Find(Id: Integer): TCustomer;                   
-begin
-  Result := TCustomer.Find<TCustomer>(Id);
-end;
-
 class function TCustomer.Find(Id: Integer; Configs: IConfigs): TCustomer;
 begin
   Result := TCustomer.Find<TCustomer>(Id, Configs);
@@ -59,11 +52,6 @@ end;
 class function TCustomer.Find(Id: Integer; Conn: IConnection): TCustomer;
 begin
   Result := TCustomer.Find<TCustomer>(Id, Conn);
-end;
-
-class function TCustomer.FindAll: TArray<TCustomer>;                     
-begin
-  Result := TCustomer.FindAll<TCustomer>;
 end;
 
 class function TCustomer.FindAll(Configs: IConfigs): TArray<TCustomer>;  

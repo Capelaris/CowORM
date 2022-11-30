@@ -47,10 +47,8 @@ type
     constructor Create; overload;
     constructor UnlazyCreate(Id: Integer; Lazy: Boolean; LastConn: IConnection);
     // Read Functions
-    class function Find<T: class>(Id: Integer): T; overload;
     class function Find<T: class>(Id: Integer; Configs: IConfigs): T; overload;
     class function Find<T: class>(Id: Integer; Conn: IConnection): T; overload;
-    class function FindAll<T: class>: TArray<T>; overload;
     class function FindAll<T: class>(Configs: IConfigs): TArray<T>; overload;
     class function FindAll<T: class>(Conn: IConnection): TArray<T>; overload;
     function Serialize: TJSONObject;
@@ -167,11 +165,6 @@ begin
       Ctx.Free;
     end;
   end;
-end;
-
-class function TORMObject.FindAll<T>: TArray<T>;
-begin
-  Result := TORMObject.FindAll<T>(DefaultConn);
 end;
 
 class function TORMObject.FindAll<T>(Configs: IConfigs): TArray<T>;
@@ -521,7 +514,7 @@ end;
 procedure TORMObject.Save;
 begin
   if not Assigned(Self.oLastConn) then
-    Self.oLastConn := DefaultConn;
+    raise Exception.Create('Connection is NotDefined');
   Self.Save(Self.oLastConn);
 end;
 
@@ -742,11 +735,6 @@ begin
   finally
     Ctx.Free;
   end;
-end;
-
-class function TORMObject.Find<T>(Id: Integer): T;
-begin
-  Result := TORMObject.Find<T>(Id, DefaultConn);
 end;
 
 class function TORMObject.Find<T>(Id: Integer; Configs: IConfigs): T;

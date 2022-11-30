@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.Grids, Vcl.DBGrids, FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
-  FireDAC.DApt.Intf, FireDAC.Comp.DataSet, FireDAC.Comp.Client;
+  FireDAC.DApt.Intf, FireDAC.Comp.DataSet, FireDAC.Comp.Client, CowORM, IOUtils;
 
 type
   TFrmMainForm = class(TForm)
@@ -24,7 +24,9 @@ type
   end;
 
 var
-  FrmMainForm: TFrmMainForm;
+  FrmMainForm  : TFrmMainForm;
+  DefaultConfig: TConfigs;
+  DefaultConn  : TConnection;
 
 implementation
 
@@ -44,20 +46,25 @@ begin
   Customer.Zipcode := 'null';
   Customer.Phone   := '996024649';
   Customer.CustomerId := 9999;
-  Customer.Save;
+  Customer.Save(DefaultConn);
 
   ShowMessage(Customer.Serialize.ToJSON);
 
   //Find/Update
-  Customer := TCustomer.Find(9999, Conn);
+  Customer := TCustomer.Find(9999, DefaultConn);
   Customer.Name := 'Vinicius Batista';
-  Customer.Save;
+  Customer.Save(DefaultConn);
 
   ShowMessage(Customer.Serialize.ToJSON);
 
   //Delete
-  Customer := TCustomer.Find(9999, Conn);
+  Customer := TCustomer.Find(9999, DefaultConn);
   Customer.Delete;
 end;
+
+initialization
+  DefaultConfig := TConfigs.Create(ctFB, 'localhost', 3050, 'sysdba', 'masterkey',
+      TPath.GetFullPath('../../../../database/examples.fdb'));
+  DefaultConn   := TConnection.Create(DefaultConfig);
 
 end.

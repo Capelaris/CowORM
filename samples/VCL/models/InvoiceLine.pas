@@ -25,10 +25,8 @@ type
     procedure WriteFkInvoiceLineProduct(Value: TProduct);
     function ReadFkInvoiceLineProduct: TProduct;
   public
-    class function Find(Id: Integer): TInvoiceLine; overload;                   
     class function Find(Id: Integer; Configs: IConfigs): TInvoiceLine; overload;
     class function Find(Id: Integer; Conn: IConnection): TInvoiceLine; overload;
-    class function FindAll: TArray<TInvoiceLine>; overload;                     
     class function FindAll(Configs: IConfigs): TArray<TInvoiceLine>; overload;  
     class function FindAll(Conn: IConnection): TArray<TInvoiceLine>; overload;  
 
@@ -44,11 +42,6 @@ type
 
 implementation
 
-class function TInvoiceLine.Find(Id: Integer): TInvoiceLine;                   
-begin
-  Result := TInvoiceLine.Find<TInvoiceLine>(Id);
-end;
-
 class function TInvoiceLine.Find(Id: Integer; Configs: IConfigs): TInvoiceLine;
 begin
   Result := TInvoiceLine.Find<TInvoiceLine>(Id, Configs);
@@ -57,11 +50,6 @@ end;
 class function TInvoiceLine.Find(Id: Integer; Conn: IConnection): TInvoiceLine;
 begin
   Result := TInvoiceLine.Find<TInvoiceLine>(Id, Conn);
-end;
-
-class function TInvoiceLine.FindAll: TArray<TInvoiceLine>;                     
-begin
-  Result := TInvoiceLine.FindAll<TInvoiceLine>;
 end;
 
 class function TInvoiceLine.FindAll(Configs: IConfigs): TArray<TInvoiceLine>;  

@@ -299,10 +299,8 @@ begin
 
       Content.Add('  public');
       Content.Add(
-          '    class function Find(Id: Integer): T' + ClassN + '; overload;                   ' + #13#10 +
           '    class function Find(Id: Integer; Configs: IConfigs): T' + ClassN + '; overload;' + #13#10 +
           '    class function Find(Id: Integer; Conn: IConnection): T' + ClassN + '; overload;' + #13#10 +
-          '    class function FindAll: TArray<T' + ClassN + '>; overload;                     ' + #13#10 +
           '    class function FindAll(Configs: IConfigs): TArray<T' + ClassN + '>; overload;  ' + #13#10 +
           '    class function FindAll(Conn: IConnection): TArray<T' + ClassN + '>; overload;  ' + #13#10);
 
@@ -340,14 +338,10 @@ begin
       Content.Add('  end;' + #13#10);
       Content.Add('implementation' + #13#10);
       Content.Add(
-          'class function T' + ClassN + '.Find(Id: Integer): T' + ClassN + ';                   ' + #13#10 +
-          'begin' + #13#10 + '  Result := T' + ClassN + '.Find<T' + ClassN + '>(Id);' + #13#10 + 'end;' + #13#10 + #13#10 +
           'class function T' + ClassN + '.Find(Id: Integer; Configs: IConfigs): T' + ClassN + ';' + #13#10 +
           'begin' + #13#10 + '  Result := T' + ClassN + '.Find<T' + ClassN + '>(Id, Configs);' + #13#10 + 'end;' + #13#10 + #13#10 +
           'class function T' + ClassN + '.Find(Id: Integer; Conn: IConnection): T' + ClassN + ';' + #13#10 +
           'begin' + #13#10 + '  Result := T' + ClassN + '.Find<T' + ClassN + '>(Id, Conn);' + #13#10 + 'end;' + #13#10 + #13#10 +
-          'class function T' + ClassN + '.FindAll: TArray<T' + ClassN + '>;                     ' + #13#10 +
-          'begin' + #13#10 + '  Result := T' + ClassN + '.FindAll<T' + ClassN + '>;' + #13#10 + 'end;' + #13#10 + #13#10 +
           'class function T' + ClassN + '.FindAll(Configs: IConfigs): TArray<T' + ClassN + '>;  ' + #13#10 +
           'begin' + #13#10 + '  Result := T' + ClassN + '.FindAll<T' + ClassN + '>(Configs);' + #13#10 + 'end;' + #13#10 + #13#10 +
           'class function T' + ClassN + '.FindAll(Conn: IConnection): TArray<T' + ClassN + '>;  ' + #13#10 +

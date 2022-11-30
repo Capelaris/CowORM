@@ -22,10 +22,8 @@ type
     procedure WriteDescription(Value: string);
     function ReadDescription: string;
   public
-    class function Find(Id: Integer): TProduct; overload;                   
     class function Find(Id: Integer; Configs: IConfigs): TProduct; overload;
     class function Find(Id: Integer; Conn: IConnection): TProduct; overload;
-    class function FindAll: TArray<TProduct>; overload;                     
     class function FindAll(Configs: IConfigs): TArray<TProduct>; overload;  
     class function FindAll(Conn: IConnection): TArray<TProduct>; overload;  
 
@@ -41,11 +39,6 @@ type
 
 implementation
 
-class function TProduct.Find(Id: Integer): TProduct;                   
-begin
-  Result := TProduct.Find<TProduct>(Id);
-end;
-
 class function TProduct.Find(Id: Integer; Configs: IConfigs): TProduct;
 begin
   Result := TProduct.Find<TProduct>(Id, Configs);
@@ -54,11 +47,6 @@ end;
 class function TProduct.Find(Id: Integer; Conn: IConnection): TProduct;
 begin
   Result := TProduct.Find<TProduct>(Id, Conn);
-end;
-
-class function TProduct.FindAll: TArray<TProduct>;                     
-begin
-  Result := TProduct.FindAll<TProduct>;
 end;
 
 class function TProduct.FindAll(Configs: IConfigs): TArray<TProduct>;  

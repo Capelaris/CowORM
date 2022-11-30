@@ -19,10 +19,8 @@ type
     procedure WritePasswd(Value: string);
     function ReadPasswd: string;
   public
-    class function Find(Id: Integer): TWebuser; overload;                   
     class function Find(Id: Integer; Configs: IConfigs): TWebuser; overload;
     class function Find(Id: Integer; Conn: IConnection): TWebuser; overload;
-    class function FindAll: TArray<TWebuser>; overload;                     
     class function FindAll(Configs: IConfigs): TArray<TWebuser>; overload;  
     class function FindAll(Conn: IConnection): TArray<TWebuser>; overload;  
 
@@ -36,11 +34,6 @@ type
 
 implementation
 
-class function TWebuser.Find(Id: Integer): TWebuser;                   
-begin
-  Result := TWebuser.Find<TWebuser>(Id);
-end;
-
 class function TWebuser.Find(Id: Integer; Configs: IConfigs): TWebuser;
 begin
   Result := TWebuser.Find<TWebuser>(Id, Configs);
@@ -49,11 +42,6 @@ end;
 class function TWebuser.Find(Id: Integer; Conn: IConnection): TWebuser;
 begin
   Result := TWebuser.Find<TWebuser>(Id, Conn);
-end;
-
-class function TWebuser.FindAll: TArray<TWebuser>;                     
-begin
-  Result := TWebuser.FindAll<TWebuser>;
 end;
 
 class function TWebuser.FindAll(Configs: IConfigs): TArray<TWebuser>;  
