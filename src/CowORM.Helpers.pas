@@ -15,10 +15,8 @@ type
 
 function GetWords(Text: string): TArray<string>;
 function Spaces(Number: Integer = 0): string;
-function Coalesce(Values: TArray<string>): string;
+function Coalesce(Values: TArray<string>): string; overload;
 function GetTableLabel(Index: Integer): string;
-function GetDriverName(pType: TConnectionType): string;
-function GetDriverID(pType: TConnectionType): string;
 
 implementation
 
@@ -74,26 +72,6 @@ begin
   end;
 
   Result := Result + Alphabet[Index];
-end;
-
-function GetDriverName(pType: TConnectionType): string;
-begin
-  Result := '';
-
-  if pType = ctFB then
-    Result := 'FB'
-  else if pType = ctMYSQL then
-    Result := 'MYSQL'
-end;
-
-function GetDriverID(pType: TConnectionType): string;
-begin
-  Result := '';
-
-  if pType = ctFB then
-    Result := 'FB'
-  else if pType = ctMYSQL then
-    Result := 'MYSQL'
 end;
 
 { TArrayUtils<T> }

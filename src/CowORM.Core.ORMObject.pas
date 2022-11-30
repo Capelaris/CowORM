@@ -21,9 +21,6 @@ type
     { Private Declarations }
     aOldValues: TArray<TOldValue>;
     oLastConn : IConnection;
-    aColumns  : TArray<TColumn>;
-    oTable    : TTable;
-    {function ChangedColumns: TColumns; }
 
     class function GetColumns<T: class>: TArray<TColumn>; overload;
     class function GetTable<T: class>: TTable; overload;
@@ -35,17 +32,18 @@ type
     function PrepareSelect: TSelectQuery; overload;
     procedure PopulateFromResult(pResult: IResult); overload;
 
+    function GetChangedColumns: TArray<TColumn>;
     function GetPrimaryKeyValue: Integer;
     procedure AddOldValue(pName: string; pValue: TValue);
   protected
     isInserted: Boolean;
     isLoaded  : Boolean;
     isLoading : Boolean;
-    //function IsDiff(Col: TColumn; Value: TValue): Boolean;
+    function IsDiff(Col: TColumn; Value: TValue): Boolean;
     procedure CheckLazy;
   public
     { Public Declarations }
-    // Create Function
+    // Create Functions
     constructor Create; overload;
     constructor UnlazyCreate(Id: Integer; Lazy: Boolean; LastConn: IConnection);
     // Read Functions
@@ -58,8 +56,10 @@ type
     function Serialize: TJSONObject;
     function SerializeProp: TJSONObject;
     function SerializeField: TJSONObject;
-    // Update Function
-    procedure Save;
+    // Update/Insert Functions
+    procedure Save; overload;
+    procedure Save(Configs: IConfigs); overload;
+    procedure Save(Conn: IConnection); overload;
     // Delete Function
     procedure Delete;
   end;
@@ -132,7 +132,6 @@ var
   Ctx   : TRttiContext;
   Tp    : TRttiType;
   Attr  : TCustomAttribute;
-  Prop  : TRttiProperty;
   PK    : TPrimaryKey;
   Params: TArray<IParam>;
   Query : TDeleteQuery;
@@ -180,13 +179,46 @@ begin
   Result := TORMObject.FindAll<T>(TConnection.Create(Configs));
 end;
 
+function TORMObject.GetChangedColumns: TArray<TColumn>;
+var
+  Ctx : TRttiContext;
+  Val : TValue;
+  Tp  : TRttiType;
+  Attr: TCustomAttribute;
+  Prop: TRttiProperty;
+  Col : TColumn;
+begin
+  Ctx    := TRttiContext.Create;
+  Result := [];
+  
+  try
+    Tp := Ctx.GetType(Self.ClassType);
+
+    for Prop in Tp.GetProperties do
+    begin
+      for Attr in Prop.GetAttributes do
+      begin
+        if Attr is TColumn then
+        begin
+          Col := (Attr as TColumn);
+          Val := Prop.GetValue(Self);
+          
+          if Self.IsDiff(Col, Val) then
+            TArrayUtils<TColumn>.Append(Result, Col);
+        end;
+      end;
+    end;
+  finally
+
+  end;
+end;
+
 function TORMObject.GetColumns: TArray<TColumn>;
 var
   Ctx : TRttiContext;
   Tp  : TRttiType;
   Attr: TCustomAttribute;
   Prop: TRttiProperty;
-  PK  : TPrimaryKey;
 begin
   Result := TArray<TColumn>.Create();
 
@@ -294,6 +326,31 @@ begin
   end;
 end;
 
+function TORMObject.IsDiff(Col: TColumn; Value: TValue): Boolean;
+var
+  Val: TOldValue;
+begin
+  Result := False;
+
+  for Val in Self.aOldValues  do
+  begin
+    if Val.Name = Col.Name then
+    begin
+      if Col.FieldType in [ctSmallInt, ctInteger, ctBigInt] then
+        Result := not (Value.AsInteger = Val.Value.AsInteger)
+      else if Col.FieldType in [ctChar, ctVarchar, ctBlobBinary, ctBlobText] then
+        Result := not (Value.AsString = Val.Value.AsString)
+      else if Col.FieldType in [ctDecimal, ctNumeric, ctFloat, ctDoublePrecision,
+          ctDate, ctTime, ctTimeStamp] then
+        Result := not (Value.AsExtended = Val.Value.AsExtended)
+      else if Col.FieldType in [ctUnknown] then
+        Result := not (Value.AsVariant = Val.Value.AsVariant);
+        
+      Exit;
+    end;
+  end;
+end;
+
 procedure TORMObject.PopulateFromResult(pResult: IResult);
 var
   Ctx  : TRttiContext;
@@ -303,11 +360,13 @@ var
   Attr : TCustomAttribute;
   Field: TField;
   Value: TValue;
+  Cols : TArray<TColumn>;
 begin
   Ctx := TRttiContext.Create;
 
   try
-    Tp := Ctx.GetType(Self.ClassType);
+    Tp   := Ctx.GetType(Self.ClassType);
+    Cols := Self.GetChangedColumns;
 
     with pResult.GetQuery do
     begin
@@ -340,7 +399,8 @@ begin
                     end;
 
                     Self.oLastConn := TResult(pResult).Conn;
-                    Prop.SetValue(Self, Value);
+                    if not TArrayUtils<TColumn>.Contains(Cols, (Attr as TColumn)) then
+                      Prop.SetValue(Self, Value);
                   except
                     on E: Exception do
                       raise Exception.Create('PopulateFromResult->' + E.Message);
@@ -459,6 +519,13 @@ begin
 end;
 
 procedure TORMObject.Save;
+begin
+  if not Assigned(Self.oLastConn) then
+    Self.oLastConn := DefaultConn;
+  Self.Save(Self.oLastConn);
+end;
+
+procedure TORMObject.Save(Conn: IConnection);
 var
   InsertQ: TInsertQuery;
   UpdateQ: TUpdateQuery;
@@ -467,28 +534,23 @@ var
   Tp     : TRttiType;
   Prop   : TRttiProperty;
   Attr   : TCustomAttribute;
+  PK     : TPrimaryKey;
+  Params : TArray<IParam>;
 begin
   Ctx := TRttiContext.Create;
   try
     Tp := Ctx.GetType(Self.ClassType);
-
-    if (Self.isInserted) then
+    Self.oLastConn := Conn;
+    if (not Self.isInserted) then
     begin
-      Cols    := Self.GetColumns;
       InsertQ := TInsertQuery.Create(Self.GetTable);
       for Prop in Tp.GetProperties do
-      begin
         for Attr in Prop.GetAttributes do
-        begin
           if (Attr is TColumn) then
-          begin
-            InsertQ.SetPair((Attr as TColumn).Name, Prop.GetValue(Self));
-          end;
-        end;
-      end;
+            InsertQ := InsertQ.SetPair((Attr as TColumn).Name, Prop.GetValue(Self));
 
       try
-        Self.oLastConn.ExecuteSQL(InsertQ.GetSQL);
+        Conn.ExecuteSQL(InsertQ.GetSQL);
       except
         on E: Exception do
         begin
@@ -498,11 +560,45 @@ begin
     end
     else
     begin
+      Cols := Self.GetChangedColumns;
+      if Length(Cols) > 0 then
+      begin
+        Params := [];
+        PK     := nil;
+        for Attr in Tp.GetAttributes do
+          if (Attr is TPrimaryKey) then
+            PK := (Attr as TPrimaryKey);
 
+        if PK = nil then
+          raise Exception.Create('Error to get PrimaryKey on Create with ID');
+      
+        UpdateQ := TUpdateQuery.Create(Self.GetTable);
+        for Prop in Tp.GetProperties do
+          for Attr in Prop.GetAttributes do
+            if (Attr is TColumn) then
+              if TArrayUtils<TColumn>.Contains(Cols, (Attr as TColumn)) then
+                UpdateQ := UpdateQ.SetPair((Attr as TColumn).Name, Prop.GetValue(Self));
+                
+        TArrayUtils<IParam>.Append(Params, TParam.Create('id', TValue.From(Self.GetPrimaryKeyValue)));
+        UpdateQ.Where(PK.Keys[0], '=', ':id');       
+        try
+          Conn.ExecuteSQL(UpdateQ.GetSQL, Params);
+        except
+          on E: Exception do
+          begin
+            raise Exception.Create(E.Message);
+          end;
+        end;
+      end;
     end;
   finally
     Ctx.Free;
   end;
+end;
+
+procedure TORMObject.Save(Configs: IConfigs);
+begin
+  Self.Save(TConnection.Create(Configs));
 end;
 
 function TORMObject.Serialize: TJSONObject;

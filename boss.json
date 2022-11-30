@@ -6,6 +6,6 @@
 	"mainsrc": "src/",
 	"projects": [],
 	"dependencies": {
-		"https://github.com/capelaris/pigquery": "^1.0.3"
+		"https://github.com/capelaris/pigquery": "^1.0.4"
 	}
 }

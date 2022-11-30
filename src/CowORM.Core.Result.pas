@@ -28,9 +28,9 @@ type
     function Serialize: TJSONObject;
     function GetConnectionCopy: IConnection;
 
-    property Query: TFDQuery    read GetQuery;
-    property Lazy : Boolean     read GetLazy;
-    property Conn : IConnection read GetConnection;
+    property Query: TFDQuery    read GetQuery      write SetQuery;
+    property Lazy : Boolean     read GetLazy       write SetLazy;
+    property Conn : IConnection read GetConnection write SetConnection;
   end;
 
 implementation

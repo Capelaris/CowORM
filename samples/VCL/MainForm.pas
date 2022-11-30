@@ -35,18 +35,29 @@ uses
 
 procedure TFrmMainForm.btnFindAllClick(Sender: TObject);
 var
-  Customers: TCustomer;
+  Customer: TCustomer;
 begin
-  Customers := TCustomer.Create;
-  Customers.Name := 'Weslley Capelari';
-  Customers.Address := 'Balsamo';
-  Customers.Zipcode := '15000-000';
-  Customers.Phone   := '996024649';
-  Customers.CustomerId := 9999;
-  Customers.Save;
-  {Customers := TCustomer.Find(15, Conn);
-  Customers.Delete;
-  ShowMessage(Customers.Serialize.ToJSON);  }
+  //Insert
+  Customer := TCustomer.Create;
+  Customer.Name := 'Weslley Capelari';
+  Customer.Address := 'Balsamo';
+  Customer.Zipcode := 'null';
+  Customer.Phone   := '996024649';
+  Customer.CustomerId := 9999;
+  Customer.Save;
+
+  ShowMessage(Customer.Serialize.ToJSON);
+
+  //Find/Update
+  Customer := TCustomer.Find(9999, Conn);
+  Customer.Name := 'Vinicius Batista';
+  Customer.Save;
+
+  ShowMessage(Customer.Serialize.ToJSON);
+
+  //Delete
+  Customer := TCustomer.Find(9999, Conn);
+  Customer.Delete;
 end;
 
 end.

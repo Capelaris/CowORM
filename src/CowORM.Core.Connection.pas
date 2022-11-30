@@ -3,8 +3,8 @@ unit CowORM.Core.Connection;
 interface
 
 uses
-  CowORM.Commons, CowORM.Helpers, CowORM.Core.Param,
-  CowORM.Core.Result, CowORM.Interfaces, SysUtils, JSON,
+  CowORM.Commons, CowORM.Core.Param, CowORM.Core.Result, CowORM.Interfaces,
+  SysUtils, JSON,
   //Default FireDAC units
   FireDAC.Comp.Client, FireDAC.Comp.UI, FireDAC.Stan.Def, FireDAC.DApt,
   FireDAC.Stan.Async, FireDAC.Phys, FireDAC.UI.Intf, FireDAC.VCLUI.Wait,
@@ -74,10 +74,10 @@ begin
   Self.oConfigs     := Configs;
   with Self.oFDCon do
   begin
-    DriverName := GetDriverName(Configs.GetConnType);
+    DriverName := Configs.GetConnType.DriverName;
     with TFDPhysMySQLConnectionDefParams(Params) do
     begin
-      DriverID := GetDriverID(Configs.GetConnType);
+      DriverID := Configs.GetConnType.DriverID;
       Database := Configs.GetDatabase;
       Server   := Configs.GetHostname;
       Port     := Configs.GetPort;
