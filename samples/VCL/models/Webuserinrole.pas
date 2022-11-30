@@ -19,6 +19,13 @@ type
     procedure WriteFkWebuserinroleUser(Value: TWebuser);
     function ReadFkWebuserinroleUser: TWebuser;
   public
+    class function Find(Id: Integer): TWebuserinrole; overload;                   
+    class function Find(Id: Integer; Configs: IConfigs): TWebuserinrole; overload;
+    class function Find(Id: Integer; Conn: IConnection): TWebuserinrole; overload;
+    class function FindAll: TArray<TWebuserinrole>; overload;                     
+    class function FindAll(Configs: IConfigs): TArray<TWebuserinrole>; overload;  
+    class function FindAll(Conn: IConnection): TArray<TWebuserinrole>; overload;  
+
     [TIntegerColumn('id', True)]
     property Id: Int32 read ReadId write WriteId;
     [TIntegerColumn('webrole_id', True)]
@@ -27,9 +34,38 @@ type
 
 implementation
 
+class function TWebuserinrole.Find(Id: Integer): TWebuserinrole;                   
+begin
+  Result := TWebuserinrole.Find<TWebuserinrole>(Id);
+end;
+
+class function TWebuserinrole.Find(Id: Integer; Configs: IConfigs): TWebuserinrole;
+begin
+  Result := TWebuserinrole.Find<TWebuserinrole>(Id, Configs);
+end;
+
+class function TWebuserinrole.Find(Id: Integer; Conn: IConnection): TWebuserinrole;
+begin
+  Result := TWebuserinrole.Find<TWebuserinrole>(Id, Conn);
+end;
+
+class function TWebuserinrole.FindAll: TArray<TWebuserinrole>;                     
+begin
+  Result := TWebuserinrole.FindAll<TWebuserinrole>;
+end;
+
+class function TWebuserinrole.FindAll(Configs: IConfigs): TArray<TWebuserinrole>;  
+begin
+  Result := TWebuserinrole.FindAll<TWebuserinrole>(Configs);
+end;
+
+class function TWebuserinrole.FindAll(Conn: IConnection): TArray<TWebuserinrole>;  
+begin
+  Result := TWebuserinrole.FindAll<TWebuserinrole>(Conn);
+end;
+
 procedure TWebuserinrole.WriteId(Value: Int32);
 begin
-  inherited CheckLazy;
   Self.FId := Value;
 end;
 
@@ -41,7 +77,6 @@ end;
 
 procedure TWebuserinrole.WriteFkWebuserinroleRole(Value: TWebrole);
 begin
-  inherited CheckLazy;
   Self.FFkWebuserinroleRole := Value;
 end;
 
@@ -53,7 +88,6 @@ end;
 
 procedure TWebuserinrole.WriteFkWebuserinroleUser(Value: TWebuser);
 begin
-  inherited CheckLazy;
   Self.FFkWebuserinroleUser := Value;
 end;
 

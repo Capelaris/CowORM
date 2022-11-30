@@ -19,6 +19,13 @@ type
     procedure WritePasswd(Value: string);
     function ReadPasswd: string;
   public
+    class function Find(Id: Integer): TWebuser; overload;                   
+    class function Find(Id: Integer; Configs: IConfigs): TWebuser; overload;
+    class function Find(Id: Integer; Conn: IConnection): TWebuser; overload;
+    class function FindAll: TArray<TWebuser>; overload;                     
+    class function FindAll(Configs: IConfigs): TArray<TWebuser>; overload;  
+    class function FindAll(Conn: IConnection): TArray<TWebuser>; overload;  
+
     [TIntegerColumn('webuser_id', True)]
     property WebuserId: Int32 read ReadWebuserId write WriteWebuserId;
     [TVarcharColumn('email', 63, True, 'UTF8', '')]
@@ -29,9 +36,38 @@ type
 
 implementation
 
+class function TWebuser.Find(Id: Integer): TWebuser;                   
+begin
+  Result := TWebuser.Find<TWebuser>(Id);
+end;
+
+class function TWebuser.Find(Id: Integer; Configs: IConfigs): TWebuser;
+begin
+  Result := TWebuser.Find<TWebuser>(Id, Configs);
+end;
+
+class function TWebuser.Find(Id: Integer; Conn: IConnection): TWebuser;
+begin
+  Result := TWebuser.Find<TWebuser>(Id, Conn);
+end;
+
+class function TWebuser.FindAll: TArray<TWebuser>;                     
+begin
+  Result := TWebuser.FindAll<TWebuser>;
+end;
+
+class function TWebuser.FindAll(Configs: IConfigs): TArray<TWebuser>;  
+begin
+  Result := TWebuser.FindAll<TWebuser>(Configs);
+end;
+
+class function TWebuser.FindAll(Conn: IConnection): TArray<TWebuser>;  
+begin
+  Result := TWebuser.FindAll<TWebuser>(Conn);
+end;
+
 procedure TWebuser.WriteWebuserId(Value: Int32);
 begin
-  inherited CheckLazy;
   Self.FWebuserId := Value;
 end;
 
@@ -43,7 +79,6 @@ end;
 
 procedure TWebuser.WriteEmail(Value: string);
 begin
-  inherited CheckLazy;
   Self.FEmail := Value;
 end;
 
@@ -55,7 +90,6 @@ end;
 
 procedure TWebuser.WritePasswd(Value: string);
 begin
-  inherited CheckLazy;
   Self.FPasswd := Value;
 end;
 

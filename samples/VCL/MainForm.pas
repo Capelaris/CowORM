@@ -31,14 +31,22 @@ implementation
 {$R *.dfm}
 
 uses
-  Invoice;
+  Customer;
 
 procedure TFrmMainForm.btnFindAllClick(Sender: TObject);
 var
-  Invoices: TArray<TInvoice>;
+  Customers: TCustomer;
 begin
-  Invoices := TInvoice.FindAll<TInvoice>(Conn);
-  ShowMessage(Invoices[0].Serialize.ToJSON);
+  Customers := TCustomer.Create;
+  Customers.Name := 'Weslley Capelari';
+  Customers.Address := 'Balsamo';
+  Customers.Zipcode := '15000-000';
+  Customers.Phone   := '996024649';
+  Customers.CustomerId := 9999;
+  Customers.Save;
+  {Customers := TCustomer.Find(15, Conn);
+  Customers.Delete;
+  ShowMessage(Customers.Serialize.ToJSON);  }
 end;
 
 end.

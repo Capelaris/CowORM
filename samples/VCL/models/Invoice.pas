@@ -25,6 +25,13 @@ type
     procedure WriteFkInvoceCustomer(Value: TCustomer);
     function ReadFkInvoceCustomer: TCustomer;
   public
+    class function Find(Id: Integer): TInvoice; overload;                   
+    class function Find(Id: Integer; Configs: IConfigs): TInvoice; overload;
+    class function Find(Id: Integer; Conn: IConnection): TInvoice; overload;
+    class function FindAll: TArray<TInvoice>; overload;                     
+    class function FindAll(Configs: IConfigs): TArray<TInvoice>; overload;  
+    class function FindAll(Conn: IConnection): TArray<TInvoice>; overload;  
+
     [TIntegerColumn('invoice_id', True)]
     property InvoiceId: Int32 read ReadInvoiceId write WriteInvoiceId;
     [TTimeStampColumn('invoice_date', False)]
@@ -39,9 +46,38 @@ type
 
 implementation
 
+class function TInvoice.Find(Id: Integer): TInvoice;                   
+begin
+  Result := TInvoice.Find<TInvoice>(Id);
+end;
+
+class function TInvoice.Find(Id: Integer; Configs: IConfigs): TInvoice;
+begin
+  Result := TInvoice.Find<TInvoice>(Id, Configs);
+end;
+
+class function TInvoice.Find(Id: Integer; Conn: IConnection): TInvoice;
+begin
+  Result := TInvoice.Find<TInvoice>(Id, Conn);
+end;
+
+class function TInvoice.FindAll: TArray<TInvoice>;                     
+begin
+  Result := TInvoice.FindAll<TInvoice>;
+end;
+
+class function TInvoice.FindAll(Configs: IConfigs): TArray<TInvoice>;  
+begin
+  Result := TInvoice.FindAll<TInvoice>(Configs);
+end;
+
+class function TInvoice.FindAll(Conn: IConnection): TArray<TInvoice>;  
+begin
+  Result := TInvoice.FindAll<TInvoice>(Conn);
+end;
+
 procedure TInvoice.WriteInvoiceId(Value: Int32);
 begin
-  inherited CheckLazy;
   Self.FInvoiceId := Value;
 end;
 
@@ -53,7 +89,6 @@ end;
 
 procedure TInvoice.WriteInvoiceDate(Value: TDateTime);
 begin
-  inherited CheckLazy;
   Self.FInvoiceDate := Value;
 end;
 
@@ -65,7 +100,6 @@ end;
 
 procedure TInvoice.WriteTotalSale(Value: Double);
 begin
-  inherited CheckLazy;
   Self.FTotalSale := Value;
 end;
 
@@ -77,7 +111,6 @@ end;
 
 procedure TInvoice.WritePaid(Value: Int16);
 begin
-  inherited CheckLazy;
   Self.FPaid := Value;
 end;
 
@@ -89,7 +122,6 @@ end;
 
 procedure TInvoice.WriteFkInvoceCustomer(Value: TCustomer);
 begin
-  inherited CheckLazy;
   Self.FFkInvoceCustomer := Value;
 end;
 

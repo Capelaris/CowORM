@@ -21,8 +21,8 @@ type
   public
     constructor Create(pFieldName, pParamName: string; pValue: TValue); overload;
     constructor Create(pFieldName: string; pValue: TValue); overload;
-    constructor Create(pColumn: IColumn; pValue: TValue); overload;
-    constructor Create(pColumn: IColumn; pParamName: string; pValue: TValue); overload;
+    constructor Create(pColumn: TColumn; pValue: TValue); overload;
+    constructor Create(pColumn: TColumn; pParamName: string; pValue: TValue); overload;
 
     function Serialize: TJSONObject;
 
@@ -52,15 +52,15 @@ begin
   Create(pFieldName, pFieldName, pValue);
 end;
 
-constructor TParam.Create(pColumn: IColumn; pValue: TValue);
+constructor TParam.Create(pColumn: TColumn; pValue: TValue);
 begin
-  Create(pColumn.GetName, pColumn.GetName, pValue);
+  Create(pColumn.Name, pColumn.Name, pValue);
 end;
 
-constructor TParam.Create(pColumn: IColumn; pParamName: string;
+constructor TParam.Create(pColumn: TColumn; pParamName: string;
   pValue: TValue);
 begin
-  Create(pColumn.GetName, pParamName, pValue);
+  Create(pColumn.Name, pParamName, pValue);
 end;
 
 function TParam.GetFieldName: string;

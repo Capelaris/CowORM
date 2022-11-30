@@ -22,6 +22,13 @@ type
     procedure WriteDescription(Value: string);
     function ReadDescription: string;
   public
+    class function Find(Id: Integer): TProduct; overload;                   
+    class function Find(Id: Integer; Configs: IConfigs): TProduct; overload;
+    class function Find(Id: Integer; Conn: IConnection): TProduct; overload;
+    class function FindAll: TArray<TProduct>; overload;                     
+    class function FindAll(Configs: IConfigs): TArray<TProduct>; overload;  
+    class function FindAll(Conn: IConnection): TArray<TProduct>; overload;  
+
     [TIntegerColumn('product_id', True)]
     property ProductId: Int32 read ReadProductId write WriteProductId;
     [TVarcharColumn('name', 100, True, 'UTF8', '')]
@@ -34,9 +41,38 @@ type
 
 implementation
 
+class function TProduct.Find(Id: Integer): TProduct;                   
+begin
+  Result := TProduct.Find<TProduct>(Id);
+end;
+
+class function TProduct.Find(Id: Integer; Configs: IConfigs): TProduct;
+begin
+  Result := TProduct.Find<TProduct>(Id, Configs);
+end;
+
+class function TProduct.Find(Id: Integer; Conn: IConnection): TProduct;
+begin
+  Result := TProduct.Find<TProduct>(Id, Conn);
+end;
+
+class function TProduct.FindAll: TArray<TProduct>;                     
+begin
+  Result := TProduct.FindAll<TProduct>;
+end;
+
+class function TProduct.FindAll(Configs: IConfigs): TArray<TProduct>;  
+begin
+  Result := TProduct.FindAll<TProduct>(Configs);
+end;
+
+class function TProduct.FindAll(Conn: IConnection): TArray<TProduct>;  
+begin
+  Result := TProduct.FindAll<TProduct>(Conn);
+end;
+
 procedure TProduct.WriteProductId(Value: Int32);
 begin
-  inherited CheckLazy;
   Self.FProductId := Value;
 end;
 
@@ -48,7 +84,6 @@ end;
 
 procedure TProduct.WriteName(Value: string);
 begin
-  inherited CheckLazy;
   Self.FName := Value;
 end;
 
@@ -60,7 +95,6 @@ end;
 
 procedure TProduct.WritePrice(Value: Double);
 begin
-  inherited CheckLazy;
   Self.FPrice := Value;
 end;
 
@@ -72,7 +106,6 @@ end;
 
 procedure TProduct.WriteDescription(Value: string);
 begin
-  inherited CheckLazy;
   Self.FDescription := Value;
 end;
 

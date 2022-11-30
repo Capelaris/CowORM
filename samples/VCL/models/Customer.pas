@@ -25,6 +25,13 @@ type
     procedure WritePhone(Value: string);
     function ReadPhone: string;
   public
+    class function Find(Id: Integer): TCustomer; overload;                   
+    class function Find(Id: Integer; Configs: IConfigs): TCustomer; overload;
+    class function Find(Id: Integer; Conn: IConnection): TCustomer; overload;
+    class function FindAll: TArray<TCustomer>; overload;                     
+    class function FindAll(Configs: IConfigs): TArray<TCustomer>; overload;  
+    class function FindAll(Conn: IConnection): TArray<TCustomer>; overload;  
+
     [TIntegerColumn('customer_id', True)]
     property CustomerId: Int32 read ReadCustomerId write WriteCustomerId;
     [TVarcharColumn('name', 60, True, 'UTF8', '')]
@@ -39,9 +46,38 @@ type
 
 implementation
 
+class function TCustomer.Find(Id: Integer): TCustomer;                   
+begin
+  Result := TCustomer.Find<TCustomer>(Id);
+end;
+
+class function TCustomer.Find(Id: Integer; Configs: IConfigs): TCustomer;
+begin
+  Result := TCustomer.Find<TCustomer>(Id, Configs);
+end;
+
+class function TCustomer.Find(Id: Integer; Conn: IConnection): TCustomer;
+begin
+  Result := TCustomer.Find<TCustomer>(Id, Conn);
+end;
+
+class function TCustomer.FindAll: TArray<TCustomer>;                     
+begin
+  Result := TCustomer.FindAll<TCustomer>;
+end;
+
+class function TCustomer.FindAll(Configs: IConfigs): TArray<TCustomer>;  
+begin
+  Result := TCustomer.FindAll<TCustomer>(Configs);
+end;
+
+class function TCustomer.FindAll(Conn: IConnection): TArray<TCustomer>;  
+begin
+  Result := TCustomer.FindAll<TCustomer>(Conn);
+end;
+
 procedure TCustomer.WriteCustomerId(Value: Int32);
 begin
-  inherited CheckLazy;
   Self.FCustomerId := Value;
 end;
 
@@ -53,7 +89,6 @@ end;
 
 procedure TCustomer.WriteName(Value: string);
 begin
-  inherited CheckLazy;
   Self.FName := Value;
 end;
 
@@ -65,7 +100,6 @@ end;
 
 procedure TCustomer.WriteAddress(Value: string);
 begin
-  inherited CheckLazy;
   Self.FAddress := Value;
 end;
 
@@ -77,7 +111,6 @@ end;
 
 procedure TCustomer.WriteZipcode(Value: string);
 begin
-  inherited CheckLazy;
   Self.FZipcode := Value;
 end;
 
@@ -89,7 +122,6 @@ end;
 
 procedure TCustomer.WritePhone(Value: string);
 begin
-  inherited CheckLazy;
   Self.FPhone := Value;
 end;
 

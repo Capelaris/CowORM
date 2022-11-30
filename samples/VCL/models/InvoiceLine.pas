@@ -25,6 +25,13 @@ type
     procedure WriteFkInvoiceLineProduct(Value: TProduct);
     function ReadFkInvoiceLineProduct: TProduct;
   public
+    class function Find(Id: Integer): TInvoiceLine; overload;                   
+    class function Find(Id: Integer; Configs: IConfigs): TInvoiceLine; overload;
+    class function Find(Id: Integer; Conn: IConnection): TInvoiceLine; overload;
+    class function FindAll: TArray<TInvoiceLine>; overload;                     
+    class function FindAll(Configs: IConfigs): TArray<TInvoiceLine>; overload;  
+    class function FindAll(Conn: IConnection): TArray<TInvoiceLine>; overload;  
+
     [TIntegerColumn('invoice_line_id', True)]
     property InvoiceLineId: Int32 read ReadInvoiceLineId write WriteInvoiceLineId;
     [TNumericColumn('quantity', 15, 0, False)]
@@ -37,9 +44,38 @@ type
 
 implementation
 
+class function TInvoiceLine.Find(Id: Integer): TInvoiceLine;                   
+begin
+  Result := TInvoiceLine.Find<TInvoiceLine>(Id);
+end;
+
+class function TInvoiceLine.Find(Id: Integer; Configs: IConfigs): TInvoiceLine;
+begin
+  Result := TInvoiceLine.Find<TInvoiceLine>(Id, Configs);
+end;
+
+class function TInvoiceLine.Find(Id: Integer; Conn: IConnection): TInvoiceLine;
+begin
+  Result := TInvoiceLine.Find<TInvoiceLine>(Id, Conn);
+end;
+
+class function TInvoiceLine.FindAll: TArray<TInvoiceLine>;                     
+begin
+  Result := TInvoiceLine.FindAll<TInvoiceLine>;
+end;
+
+class function TInvoiceLine.FindAll(Configs: IConfigs): TArray<TInvoiceLine>;  
+begin
+  Result := TInvoiceLine.FindAll<TInvoiceLine>(Configs);
+end;
+
+class function TInvoiceLine.FindAll(Conn: IConnection): TArray<TInvoiceLine>;  
+begin
+  Result := TInvoiceLine.FindAll<TInvoiceLine>(Conn);
+end;
+
 procedure TInvoiceLine.WriteInvoiceLineId(Value: Int32);
 begin
-  inherited CheckLazy;
   Self.FInvoiceLineId := Value;
 end;
 
@@ -51,7 +87,6 @@ end;
 
 procedure TInvoiceLine.WriteQuantity(Value: Double);
 begin
-  inherited CheckLazy;
   Self.FQuantity := Value;
 end;
 
@@ -63,7 +98,6 @@ end;
 
 procedure TInvoiceLine.WriteSalePrice(Value: Double);
 begin
-  inherited CheckLazy;
   Self.FSalePrice := Value;
 end;
 
@@ -75,7 +109,6 @@ end;
 
 procedure TInvoiceLine.WriteFkInvoiceLineInvoice(Value: TInvoice);
 begin
-  inherited CheckLazy;
   Self.FFkInvoiceLineInvoice := Value;
 end;
 
@@ -87,7 +120,6 @@ end;
 
 procedure TInvoiceLine.WriteFkInvoiceLineProduct(Value: TProduct);
 begin
-  inherited CheckLazy;
   Self.FFkInvoiceLineProduct := Value;
 end;
 

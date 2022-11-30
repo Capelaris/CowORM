@@ -3,9 +3,14 @@ unit CowORM.Interfaces;
 interface
 
 uses
-  CowORM.Commons, FireDAC.Comp.Client, Rtti, JSON, PigQuery;
+  CowORM.Commons, FireDAC.Comp.Client, Rtti, JSON;
 
 type
+  ISerializable = interface(IUnknown)
+  ['{5944FB6A-04E3-433F-8769-E2D5A17436EE}']
+    function Serialize: TJSONObject;
+  end;
+
   IConfigs = interface(ISerializable)
   ['{fbeee245-47d7-4e2d-8c48-bc05c0b64af8}']
     procedure SetConnType(Value: TConnectionType);

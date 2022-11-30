@@ -228,7 +228,8 @@ begin
       begin
         if FieldByName('PRIMARY_KEY').AsString = 'True' then
           TArrayUtils<string>.Append(PK, FieldByName('FIELD_NAME').AsString);
-        if FieldByName('PKTABLE_NAME').AsString <> '' then
+        if (FieldByName('PKTABLE_NAME').AsString <> '') and
+            (not TArrayUtils<string>.Contains(FK, FormatTableName(FieldByName('PKTABLE_NAME').AsString))) then
           TArrayUtils<string>.Append(FK, FormatTableName(FieldByName('PKTABLE_NAME').AsString));
         Next;
       end;
@@ -297,6 +298,13 @@ begin
       end;
 
       Content.Add('  public');
+      Content.Add(
+          '    class function Find(Id: Integer): T' + ClassN + '; overload;                   ' + #13#10 +
+          '    class function Find(Id: Integer; Configs: IConfigs): T' + ClassN + '; overload;' + #13#10 +
+          '    class function Find(Id: Integer; Conn: IConnection): T' + ClassN + '; overload;' + #13#10 +
+          '    class function FindAll: TArray<T' + ClassN + '>; overload;                     ' + #13#10 +
+          '    class function FindAll(Configs: IConfigs): TArray<T' + ClassN + '>; overload;  ' + #13#10 +
+          '    class function FindAll(Conn: IConnection): TArray<T' + ClassN + '>; overload;  ' + #13#10);
 
       First;
       while not Eof do
@@ -331,6 +339,19 @@ begin
 
       Content.Add('  end;' + #13#10);
       Content.Add('implementation' + #13#10);
+      Content.Add(
+          'class function T' + ClassN + '.Find(Id: Integer): T' + ClassN + ';                   ' + #13#10 +
+          'begin' + #13#10 + '  Result := T' + ClassN + '.Find<T' + ClassN + '>(Id);' + #13#10 + 'end;' + #13#10 + #13#10 +
+          'class function T' + ClassN + '.Find(Id: Integer; Configs: IConfigs): T' + ClassN + ';' + #13#10 +
+          'begin' + #13#10 + '  Result := T' + ClassN + '.Find<T' + ClassN + '>(Id, Configs);' + #13#10 + 'end;' + #13#10 + #13#10 +
+          'class function T' + ClassN + '.Find(Id: Integer; Conn: IConnection): T' + ClassN + ';' + #13#10 +
+          'begin' + #13#10 + '  Result := T' + ClassN + '.Find<T' + ClassN + '>(Id, Conn);' + #13#10 + 'end;' + #13#10 + #13#10 +
+          'class function T' + ClassN + '.FindAll: TArray<T' + ClassN + '>;                     ' + #13#10 +
+          'begin' + #13#10 + '  Result := T' + ClassN + '.FindAll<T' + ClassN + '>;' + #13#10 + 'end;' + #13#10 + #13#10 +
+          'class function T' + ClassN + '.FindAll(Configs: IConfigs): TArray<T' + ClassN + '>;  ' + #13#10 +
+          'begin' + #13#10 + '  Result := T' + ClassN + '.FindAll<T' + ClassN + '>(Configs);' + #13#10 + 'end;' + #13#10 + #13#10 +
+          'class function T' + ClassN + '.FindAll(Conn: IConnection): TArray<T' + ClassN + '>;  ' + #13#10 +
+          'begin' + #13#10 + '  Result := T' + ClassN + '.FindAll<T' + ClassN + '>(Conn);' + #13#10 + 'end;' + #13#10);
 
       FKCols := [];
       First;
@@ -343,7 +364,7 @@ begin
             TArrayUtils<string>.Append(FKCols, FieldByName('FK_NAME').AsString);
             Content.Add('procedure T' + ClassN + '.Write' + FormatTableName(FieldByName('FK_NAME').AsString) + '(Value: T' +
                 FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ');');
-            Content.Add('begin' + #13#10 + '  inherited CheckLazy;' + #13#10 + '  Self.F' +
+            Content.Add('begin' + #13#10 + '  Self.F' +
                 FormatTableName(FieldByName('FK_NAME').AsString) + ' := Value;' + #13#10 + 'end;' + #13#10);
             Content.Add('function T' + ClassN + '.Read' + FormatTableName(FieldByName('FK_NAME').AsString) + ': T' +
                 FormatTableName(FieldByName('PKTABLE_NAME').AsString) + ';');
@@ -355,7 +376,7 @@ begin
         begin
           Content.Add('procedure T' + ClassN + '.Write' + FormatTableName(FieldByName('FIELD_NAME').AsString) + '(Value: ' +
               GetFieldType(FieldByName('FIELD_TYPE').AsString) + ');');
-          Content.Add('begin' + #13#10 + '  inherited CheckLazy;' + #13#10 + '  Self.F' +
+          Content.Add('begin' + #13#10 + '  Self.F' +
               FormatTableName(FieldByName('FIELD_NAME').AsString) + ' := Value;' + #13#10 + 'end;' + #13#10);
           Content.Add('function T' + ClassN + '.Read' + FormatTableName(FieldByName('FIELD_NAME').AsString) + ': ' +
               GetFieldType(FieldByName('FIELD_TYPE').AsString) + ';');
