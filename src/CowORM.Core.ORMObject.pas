@@ -329,15 +329,19 @@ begin
   begin
     if Val.Name = Col.Name then
     begin
-      if Col.FieldType in [ctSmallInt, ctInteger, ctBigInt] then
-        Result := not (Value.AsInteger = Val.Value.AsInteger)
-      else if Col.FieldType in [ctChar, ctVarchar, ctBlobBinary, ctBlobText] then
-        Result := not (Value.AsString = Val.Value.AsString)
-      else if Col.FieldType in [ctDecimal, ctNumeric, ctFloat, ctDoublePrecision,
-          ctDate, ctTime, ctTimeStamp] then
-        Result := not (Value.AsExtended = Val.Value.AsExtended)
-      else if Col.FieldType in [ctUnknown] then
-        Result := not (Value.AsVariant = Val.Value.AsVariant);
+      try
+        if Col.FieldType in [ctSmallInt, ctInteger, ctBigInt] then
+          Result := not (Value.AsInteger = Val.Value.AsInteger)
+        else if Col.FieldType in [ctChar, ctVarchar, ctBlobBinary, ctBlobText] then
+          Result := not (Value.AsString = Val.Value.AsString)
+        else if Col.FieldType in [ctDecimal, ctNumeric, ctFloat, ctDoublePrecision,
+            ctDate, ctTime, ctTimeStamp] then
+          Result := not (Value.AsExtended = Val.Value.AsExtended)
+        else if Col.FieldType in [ctUnknown] then
+          Result := not (Value.AsVariant = Val.Value.AsVariant);
+      except
+
+      end;
         
       Exit;
     end;

@@ -53,7 +53,7 @@ begin
   //Find/Update
   Customer := TCustomer.Find(9999, DefaultConn);
   Customer.Name := 'Vinicius Batista';
-  Customer.Save(DefaultConn);
+  Customer.Save;
 
   ShowMessage(Customer.Serialize.ToJSON);
 
